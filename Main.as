@@ -6,11 +6,13 @@ package
 	import flash.display.Sprite;
 	import flash.events.AccelerometerEvent;
 	import flash.events.Event;
+	import flash.events.GeolocationEvent;
 	import flash.events.MouseEvent;
+	import flash.events.StatusEvent;
 	import flash.geom.Rectangle;
-	import flash.html.HTMLLoader;
 	import flash.media.StageWebView;
 	import flash.sensors.Accelerometer;
+	import flash.sensors.Geolocation;
 	import flash.text.TextField;
 	
 
@@ -25,7 +27,7 @@ package
 		private var layerUI:Sprite=new Sprite()
 		private var butScan:Sprite=new Sprite()
 //		private var butScan:Sprite=new Sprite()
-		var html:HTMLLoader = new HTMLLoader();
+		var geoTextField:TextField=new TextField()
 
 
 
@@ -47,13 +49,63 @@ package
 		{
 			addChild(layerUI)
 			//
-			setAccelerometer()
+			setGeo()
+//			setAccelerometer()
 //			setUI()
 			//
 			butScan.addEventListener(MouseEvent.CLICK,setQRReader)
 			
 
 
+		}
+		
+		private function setGeo():void
+		{
+			trace("Main.setGeo()");
+			
+			var geo:Geolocation; 
+			 geoTextField=new TextField()
+
+			
+			if (Geolocation.isSupported) 
+			{ 
+				geo = new Geolocation(); 
+				if (!geo.muted) 
+				{ 
+					geo.addEventListener(GeolocationEvent.UPDATE, updateHandler); 
+				} 
+				geo.addEventListener(StatusEvent.STATUS, geoStatusHandler);  
+			} 
+			else 
+			{ 
+				geoTextField.text = "Geolocation feature not supported"; 
+				trace("no")
+			} 
+			
+			
+			geoTextField.scaleX=geoTextField.scaleY=3
+			addChild(geoTextField)
+			
+		}
+		
+		protected function geoStatusHandler(event:Event):void
+		{
+			trace("Main.geoStatusHandler(event)");
+			
+			
+		}
+		
+		public function updateHandler(event:GeolocationEvent):void 
+		{ 
+			trace("Main.updateHandler(event)");
+			
+			geoTextField.text = "latitude: " + event.latitude.toString() + "\n" 
+				+ "longitude: " + event.longitude.toString() + "\n" 
+				+ "altitude: " + event.altitude.toString() 
+				+ "speed: " + event.speed.toString() 
+				+ "heading: " + event.heading.toString() 
+				+ "horizontal accuracy: " + event.horizontalAccuracy.toString() 
+				+ "vertical accuracy: " + event.verticalAccuracy.toString() 
 		}
 		
 		private function setAccelerometer():void
