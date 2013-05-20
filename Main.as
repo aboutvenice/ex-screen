@@ -28,7 +28,15 @@ package
 		private var layerUI:Sprite=new Sprite()
 		private var butScan:Sprite=new Sprite()
 //		private var butScan:Sprite=new Sprite()
-		var geoTextField:TextField=new TextField()
+		private var geoTextField:TextField=new TextField()
+		private var accTextField:TextField=new TextField()
+		private var rollingX:Number = 0; 
+		private var rollingY:Number = 0; 
+		private var rollingZ:Number = 0; 
+		private const FACTOR:Number = 0.25; 
+		private var ball:Sprite=new Sprite()
+
+
 
 
 
@@ -50,8 +58,8 @@ package
 		{
 			addChild(layerUI)
 			//
-			setGeo()
-//			setAccelerometer()
+//			setGeo()
+			setAccelerometer()
 //			setUI()
 			//
 			butScan.addEventListener(MouseEvent.CLICK,setQRReader)
@@ -73,12 +81,12 @@ package
 				trace("support")
 				geo = new Geolocation(); 
 				
-				geo.setRequestedUpdateInterval(1000);
+				geo.setRequestedUpdateInterval(100);
 
 				if (!geo.muted) 
 				{ 
 					trace("good")
-					geo.addEventListener(GeolocationEvent.UPDATE, updateHandler); 
+					geo.addEventListener(GeolocationEvent.UPDATE, geoUpdateHandler); 
 				}
 				else
 				{
@@ -106,7 +114,7 @@ package
 			
 		}
 		
-		public function updateHandler(event:GeolocationEvent):void 
+		public function geoUpdateHandler(event:GeolocationEvent):void 
 		{ 
 			trace("Main.updateHandler(event)");
 			
@@ -121,57 +129,49 @@ package
 		
 		private function setAccelerometer():void
 		{
-			var accTextField:TextField=new TextField()
-			/*var accl:Accelerometer; 
-			if (Accelerometer.isSupported) 
-			{ 
-				accl = new Accelerometer(); 
-				accl.addEventListener(AccelerometerEvent.UPDATE, updateHandler); 
-			} 
-			else 
-			{ 
-				accTextField.text = "Accelerometer feature not supported"; 
-			} 
-			function updateHandler(evt:AccelerometerEvent):void 
-			{ 
-				accTextField.text = "acceleration X: " + evt.accelerationX.toString() + "\n" 
-					+ "acceleration Y: " + evt.accelerationY.toString() + "\n" 
-					+ "acceleration Z: " + evt.accelerationZ.toString() 
-			}
-			*/
 				
 			var accl:Accelerometer; 
-			var rollingX:Number = 0; 
-			var rollingY:Number = 0; 
-			var rollingZ:Number = 0; 
-			const FACTOR:Number = 0.25; 
 			
 			if (Accelerometer.isSupported) 
 			{ 
 				accl = new Accelerometer(); 
 				accl.setRequestedUpdateInterval(200); 
-				accl.addEventListener(AccelerometerEvent.UPDATE, updateHandler); 
+				accl.addEventListener(AccelerometerEvent.UPDATE, acclUpdateHandler); 
 			} 
 			else 
 			{ 
 				accTextField.text = "Accelerometer feature not supported"; 
 			} 
-			function updateHandler(event:AccelerometerEvent):void 
-			{ 
-				accelRollingAvg(event); 
-				accTextField.text = rollingX + "\n" +  rollingY + "\n" + rollingZ + "\n"; 
-			} 
 			
-			function accelRollingAvg(event:AccelerometerEvent):void 
-			{ 
-				rollingX = (event.accelerationX * FACTOR) + (rollingX * (1 - FACTOR)); 
-				rollingY = (event.accelerationY * FACTOR) + (rollingY * (1 - FACTOR)); 
-				rollingZ = (event.accelerationZ * FACTOR) + (rollingZ * (1 - FACTOR)); 
-			}
+		
 				
 			accTextField.scaleX=accTextField.scaleY=4
+			accTextField.autoSize= TextFieldAutoSize.LEFT
 			addChild(accTextField)
+			//
+			ball.graphics.beginFill(0xFF0000)
+			ball.graphics.drawCircle(stage.stageWidth/2, stage.stageHeight/2, 30)
+			addChild(ball)
 			
+		}
+		
+		public function acclUpdateHandler(event:AccelerometerEvent):void 
+		{ 
+			accelRollingAvg(event); 
+		}
+		
+		public function accelRollingAvg(event:AccelerometerEvent):void 
+		{ 
+			rollingX = (event.accelerationX * FACTOR) + (rollingX * (1 - FACTOR)); 
+			rollingY = (event.accelerationY * FACTOR) + (rollingY * (1 - FACTOR)); 
+			rollingZ = (event.accelerationZ * FACTOR) + (rollingZ * (1 - FACTOR)); 
+			
+			accTextField.text = "acceleration X: " + rollingX.toFixed(2).toString() + "\n" 
+				+ "acceleration Y: " + rollingY.toFixed(2).toString() + "\n" 
+				+ "acceleration Z: " + rollingZ.toFixed(2).toString()
+				
+				ball.x+=rollingX*100*-1
+				ball.y+=rollingY*100
 		}
 		
 		private function setUI():void
