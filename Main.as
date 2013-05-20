@@ -3,10 +3,14 @@ package
 	import com.rancondev.extensions.qrzbar.QRZBar;
 	import com.rancondev.extensions.qrzbar.QRZBarEvent;
 	
-	import flash.display.MovieClip;
 	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.events.MouseEvent;
+	import flash.geom.Rectangle;
+	import flash.html.HTMLLoader;
+	import flash.media.StageWebView;
+	import flash.net.URLRequest;
+	import flash.net.navigateToURL; 
 
 
 	[SWF(width="800", height="600", backgroundColor="#FFFFFF", frameRate="31")]
@@ -19,6 +23,7 @@ package
 		private var layerUI:Sprite=new Sprite()
 		private var butScan:Sprite=new Sprite()
 //		private var butScan:Sprite=new Sprite()
+		var html:HTMLLoader = new HTMLLoader();
 
 
 
@@ -47,7 +52,7 @@ package
 
 
 		}
-
+		
 		private function setUI():void
 		{
 			
@@ -63,8 +68,7 @@ package
 		{
 			qr=new QRZBar();
 			qr.scan();
-
-
+			//
 			qr.addEventListener(QRZBarEvent.SCANNED, scannedHandler);
 
 		}
@@ -72,8 +76,16 @@ package
 		protected function scannedHandler(event:QRZBarEvent):void
 		{
 			qr.removeEventListener(QRZBarEvent.SCANNED, scannedHandler);
-			trace(event.result);
+			
+			var url:String=event.result
+			var webView:StageWebView = new StageWebView(); 
+
+			webView.stage = this.stage; 
+			webView.viewPort = new Rectangle( 0, 0, stage.stageWidth, stage.stageHeight ); 
+			webView.loadURL(url) 
+		
 		}
+		
 
 	}
 }
