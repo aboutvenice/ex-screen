@@ -14,6 +14,7 @@ package
 	import flash.sensors.Accelerometer;
 	import flash.sensors.Geolocation;
 	import flash.text.TextField;
+	import flash.text.TextFieldAutoSize;
 	
 
 
@@ -69,11 +70,20 @@ package
 			
 			if (Geolocation.isSupported) 
 			{ 
+				trace("support")
 				geo = new Geolocation(); 
+				
+				geo.setRequestedUpdateInterval(1000);
+
 				if (!geo.muted) 
 				{ 
+					trace("good")
 					geo.addEventListener(GeolocationEvent.UPDATE, updateHandler); 
-				} 
+				}
+				else
+				{
+					trace("muted")
+				}
 				geo.addEventListener(StatusEvent.STATUS, geoStatusHandler);  
 			} 
 			else 
@@ -84,6 +94,7 @@ package
 			
 			
 			geoTextField.scaleX=geoTextField.scaleY=3
+			geoTextField.autoSize= TextFieldAutoSize.LEFT
 			addChild(geoTextField)
 			
 		}
@@ -101,10 +112,10 @@ package
 			
 			geoTextField.text = "latitude: " + event.latitude.toString() + "\n" 
 				+ "longitude: " + event.longitude.toString() + "\n" 
-				+ "altitude: " + event.altitude.toString() 
-				+ "speed: " + event.speed.toString() 
-				+ "heading: " + event.heading.toString() 
-				+ "horizontal accuracy: " + event.horizontalAccuracy.toString() 
+				+ "altitude: " + event.altitude.toString() + "\n"
+				+ "speed: " + event.speed.toString() + "\n"
+				+ "heading: " + event.heading.toString() + "\n"
+				+ "horizontal accuracy: " + event.horizontalAccuracy.toString()+ "\n" 
 				+ "vertical accuracy: " + event.verticalAccuracy.toString() 
 		}
 		
