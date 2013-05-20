@@ -4,13 +4,15 @@ package
 	import com.rancondev.extensions.qrzbar.QRZBarEvent;
 	
 	import flash.display.Sprite;
+	import flash.events.AccelerometerEvent;
 	import flash.events.Event;
 	import flash.events.MouseEvent;
 	import flash.geom.Rectangle;
 	import flash.html.HTMLLoader;
 	import flash.media.StageWebView;
-	import flash.net.URLRequest;
-	import flash.net.navigateToURL; 
+	import flash.sensors.Accelerometer;
+	import flash.text.TextField;
+	
 
 
 	[SWF(width="800", height="600", backgroundColor="#FFFFFF", frameRate="31")]
@@ -45,12 +47,68 @@ package
 		{
 			addChild(layerUI)
 			//
-			setUI()
+			setAccelerometer()
+//			setUI()
 			//
 			butScan.addEventListener(MouseEvent.CLICK,setQRReader)
 			
 
 
+		}
+		
+		private function setAccelerometer():void
+		{
+			var accTextField:TextField=new TextField()
+			/*var accl:Accelerometer; 
+			if (Accelerometer.isSupported) 
+			{ 
+				accl = new Accelerometer(); 
+				accl.addEventListener(AccelerometerEvent.UPDATE, updateHandler); 
+			} 
+			else 
+			{ 
+				accTextField.text = "Accelerometer feature not supported"; 
+			} 
+			function updateHandler(evt:AccelerometerEvent):void 
+			{ 
+				accTextField.text = "acceleration X: " + evt.accelerationX.toString() + "\n" 
+					+ "acceleration Y: " + evt.accelerationY.toString() + "\n" 
+					+ "acceleration Z: " + evt.accelerationZ.toString() 
+			}
+			*/
+				
+			var accl:Accelerometer; 
+			var rollingX:Number = 0; 
+			var rollingY:Number = 0; 
+			var rollingZ:Number = 0; 
+			const FACTOR:Number = 0.25; 
+			
+			if (Accelerometer.isSupported) 
+			{ 
+				accl = new Accelerometer(); 
+				accl.setRequestedUpdateInterval(200); 
+				accl.addEventListener(AccelerometerEvent.UPDATE, updateHandler); 
+			} 
+			else 
+			{ 
+				accTextField.text = "Accelerometer feature not supported"; 
+			} 
+			function updateHandler(event:AccelerometerEvent):void 
+			{ 
+				accelRollingAvg(event); 
+				accTextField.text = rollingX + "\n" +  rollingY + "\n" + rollingZ + "\n"; 
+			} 
+			
+			function accelRollingAvg(event:AccelerometerEvent):void 
+			{ 
+				rollingX = (event.accelerationX * FACTOR) + (rollingX * (1 - FACTOR)); 
+				rollingY = (event.accelerationY * FACTOR) + (rollingY * (1 - FACTOR)); 
+				rollingZ = (event.accelerationZ * FACTOR) + (rollingZ * (1 - FACTOR)); 
+			}
+				
+			accTextField.scaleX=accTextField.scaleY=4
+			addChild(accTextField)
+			
 		}
 		
 		private function setUI():void
