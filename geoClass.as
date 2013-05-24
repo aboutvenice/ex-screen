@@ -70,6 +70,9 @@ package
 			
 			geoTextField.text = "heading: " + event.heading.toFixed(2).toString() + "\n"
 			heading=Number(event.heading.toFixed(2))
+			//
+			Main.onRun()
+				
 		}
 	}
 }

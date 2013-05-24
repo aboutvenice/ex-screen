@@ -48,6 +48,10 @@ package
 			rollingX = (event.accelerationX * FACTOR) + (rollingX * (1 - FACTOR)); 
 			rollingY = (event.accelerationY * FACTOR) + (rollingY * (1 - FACTOR)); 
 			rollingZ = (event.accelerationZ * FACTOR) + (rollingZ * (1 - FACTOR)); 
+			//
+			rollingX=Number(rollingX.toFixed(2))
+			rollingY=Number(rollingY.toFixed(2))
+			rollingZ=Number(rollingZ.toFixed(2))
 			
 			accTextField.text = "acceleration X: " + rollingX.toFixed(2).toString() + "\n" 
 				+ "acceleration Y: " + rollingY.toFixed(2).toString() + "\n" 
