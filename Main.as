@@ -43,8 +43,16 @@ package
 		public static var difH:Number=0 //the distance from last Heading Value
 		public static var preH:Number=0 //pre Heading Value
 		public static var disP:Number=0 //the distance website should move 
+		private static var moveRate:int=6; //move distance,mapping to stage
+		//
+		public static var webView:StageWebView
+		private static var tag_loaded:Boolean=false;
+		public static var moveRect:Rectangle=new Rectangle(0, 0, 800 / 2, 600 / 2)
 
+		//
 		public static var text_diff:TextField=new TextField()
+
+
 
 
 		public function Main()
@@ -103,18 +111,29 @@ package
 				{
 					//上一個heading的位置值減掉現在的
 					difH=obj_geo.heading - preH
-
 				}
 
-				disP=(difH * -1)
-				ball.x+=disP * 4 //<-網頁移動的距離
+				disP=(difH * -1) //乘負數，網頁移動位置與視角相反
+				disP*=moveRate //<-網頁移動的距離比率
 				preH=obj_geo.heading
+				//	
+				makeMovement()
 				//	
 				text_diff.text="diifX= " + difX.toFixed(2) + "\n" + "diifY= " + difY.toFixed(2) + "\n" + "diifZ= " + difZ.toFixed(2) + "\n" + "defaultH= " + defaultH + "\n" + "diifH= " + difH.toFixed(2) + "\n" + "disP= " + disP.toFixed(2)
 
 			}
 
+		}
 
+		private static function makeMovement():void
+		{
+			ball.x+=disP
+			//	
+			if (tag_loaded)
+			{
+				moveRect.x+=disP
+				webView.viewPort=moveRect
+			}
 
 		}
 
@@ -175,7 +194,7 @@ package
 			butScan.graphics.beginFill(0xFF0000)
 			butScan.graphics.drawCircle(100, 100, 100)
 			//	
-//			layerUI.addChild(butScan)
+			layerUI.addChild(butScan)
 			//
 
 			ball.graphics.beginFill(0xFF0000)
@@ -198,14 +217,19 @@ package
 			qr.removeEventListener(QRZBarEvent.SCANNED, scannedHandler);
 
 			var url:String=event.result
-			var webView:StageWebView=new StageWebView();
-
+			webView=new StageWebView();
 			webView.stage=this.stage;
-			webView.viewPort=new Rectangle(0, 0, stage.stageWidth, stage.stageHeight);
 			webView.loadURL(url)
+			webView.addEventListener(Event.COMPLETE, loadFinishHandler)
 
 		}
 
+		protected function loadFinishHandler(event:Event):void
+		{
+
+			tag_loaded=true
+
+		}
 
 	}
 }
