@@ -2,7 +2,7 @@ package
 {
 	import com.rancondev.extensions.qrzbar.QRZBar;
 	import com.rancondev.extensions.qrzbar.QRZBarEvent;
-	
+
 	import flash.display.Sprite;
 	import flash.display.StageOrientation;
 	import flash.events.Event;
@@ -26,7 +26,7 @@ package
 		public var layerText:Sprite=new Sprite()
 		private var layerUI:Sprite=new Sprite()
 		private var butScan:Sprite=new Sprite()
-		private static  var ball:Sprite=new Sprite()
+		private static var ball:Sprite=new Sprite()
 		//
 		public static var obj_accl:acclClass=new acclClass()
 		public static var obj_geo:geoClass=new geoClass()
@@ -40,10 +40,9 @@ package
 		public static var difX:Number=0
 		public static var difY:Number=0
 		public static var difZ:Number=0
-		public static var difH:Number=0
-		public static var preH:Number=0
-		public static var disP:Number=0
-		public static var preP:Number=0
+		public static var difH:Number=0 //the distance from last Heading Value
+		public static var preH:Number=0 //pre Heading Value
+		public static var disP:Number=0 //the distance website should move 
 
 		public static var text_diff:TextField=new TextField()
 
@@ -78,52 +77,40 @@ package
 			// Listener
 			//--------------------------------------------------			
 			butScan.addEventListener(MouseEvent.CLICK, setQRReader)
-//			stage.addEventListener(Event.ENTER_FRAME, onRun)
 		}
 
-//		protected function onRun(event:Event):void
 		public static function onRun():void
 		{
 			if (tag_start)
 			{
-
-//				if (obj_geo.heading)
-
 				difX=defaultX - obj_accl.rollingX
 				difY=defaultY - obj_accl.rollingY
 				difZ=defaultZ - obj_accl.rollingZ
 				//
-					
-				difH= obj_geo.heading-preH
-				
-				if(preH<=90&&obj_geo.heading>=270)
+				if (preH <= 90 && obj_geo.heading >= 270)
 				{
-					trace("H減少，經過0，到350")
-				}else if(preH>=270&&obj_geo.heading<=90)
+//					trace("H減少，從90經過0，到350")
+					difH=(obj_geo.heading - 360) - preH
+
+				}
+				else if (preH >= 270 && obj_geo.heading <= 90)
 				{
-					trace("Ｈ增加，經過0，到10")
-				}	
-					
-				if(difH<0)
+//					trace("Ｈ增加，從270經過0，到90")
+					difH=(obj_geo.heading + 360) - preH
+
+				}
+				else
 				{
-					trace("負")
-				}else if(difH>0)
-				{
-					trace("正")
-				}	
-				
-				disP=(difH*-1)
-				//
-				if(disP!==preP)
-				{
-					ball.x+=disP*3
-				}	
-					
-					
+					//上一個heading的位置值減掉現在的
+					difH=obj_geo.heading - preH
+
+				}
+
+				disP=(difH * -1)
+				ball.x+=disP * 4 //<-網頁移動的距離
 				preH=obj_geo.heading
-				preP=disP	
 				//	
-				text_diff.text="diifX= " + difX.toFixed(2) + "\n" + "diifY= " + difY.toFixed(2) + "\n" + "diifZ= " + difZ.toFixed(2) + "\n"+"defaultH= "+ defaultH+ "\n" + "diifH= " + difH.toFixed(2) +"\n"+"disP= "+disP.toFixed(2)
+				text_diff.text="diifX= " + difX.toFixed(2) + "\n" + "diifY= " + difY.toFixed(2) + "\n" + "diifZ= " + difZ.toFixed(2) + "\n" + "defaultH= " + defaultH + "\n" + "diifH= " + difH.toFixed(2) + "\n" + "disP= " + disP.toFixed(2)
 
 			}
 
@@ -164,7 +151,7 @@ package
 			defaultY=obj_accl.rollingY
 			defaultZ=obj_accl.rollingZ
 			defaultH=obj_geo.heading
-			preP=defaultH
+			preH=defaultH
 			//	
 			timer_default.stop()
 			timer_default.removeEventListener(TimerEvent.TIMER_COMPLETE, setValueHandler)
@@ -173,6 +160,9 @@ package
 			trace("defaultY= " + defaultY)
 			trace("defaultZ= " + defaultZ)
 			trace("defaultH= " + defaultH)
+			trace("default preH= " + preH)
+			trace("default Heading= " + obj_geo.heading)
+			trace("-------")
 			tag_start=true
 
 
@@ -187,7 +177,7 @@ package
 			//	
 //			layerUI.addChild(butScan)
 			//
-			
+
 			ball.graphics.beginFill(0xFF0000)
 			ball.graphics.drawCircle(stage.stageWidth / 2, stage.stageHeight / 2, 50)
 			addChild(ball)
