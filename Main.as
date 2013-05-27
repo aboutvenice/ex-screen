@@ -3,13 +3,16 @@ package
 	import com.rancondev.extensions.qrzbar.QRZBar;
 	import com.rancondev.extensions.qrzbar.QRZBarEvent;
 
+	import flash.display.MovieClip;
 	import flash.display.Sprite;
 	import flash.display.StageOrientation;
 	import flash.events.Event;
 	import flash.events.MouseEvent;
 	import flash.events.TimerEvent;
 	import flash.geom.Rectangle;
+	import flash.media.Camera;
 	import flash.media.StageWebView;
+	import flash.media.Video;
 	import flash.text.TextField;
 	import flash.text.TextFieldAutoSize;
 	import flash.utils.Timer;
@@ -17,6 +20,8 @@ package
 
 
 	[SWF(width="800", height="600", backgroundColor="#FFFFFF", frameRate="31")]
+//	[SWF(width="1632", height="816", backgroundColor="#FFFFFF", frameRate="31")]
+
 
 
 	public class Main extends Sprite
@@ -25,8 +30,10 @@ package
 		private var qr:QRZBar;
 		public var layerText:Sprite=new Sprite()
 		private var layerUI:Sprite=new Sprite()
+		private var layerCam:Sprite=new Sprite()
 		private var butScan:Sprite=new Sprite()
-		private static var ball:Sprite=new Sprite()
+		private var butText:Sprite=new Sprite()
+		private static var ball:MovieClip=new MovieClip()
 		//
 		public static var obj_accl:acclClass=new acclClass()
 		public static var obj_geo:geoClass=new geoClass()
@@ -48,6 +55,11 @@ package
 		public static var webView:StageWebView
 		private static var tag_loaded:Boolean=false;
 		public static var moveRect:Rectangle=new Rectangle(0, 0, 800 / 2, 600 / 2)
+		private static var tag_Text:Boolean=false; //show/hide text
+		//
+		public var cam:Camera
+		public var vid:Video
+
 
 		//
 		public static var text_diff:TextField=new TextField()
@@ -74,6 +86,8 @@ package
 			//--------------------------------------------------
 			// visual
 			//--------------------------------------------------
+			layerText.visible=false
+			addChild(layerCam)
 			addChild(layerText)
 			addChild(layerUI)
 			//--------------------------------------------------
@@ -81,10 +95,53 @@ package
 			//--------------------------------------------------
 			setAccl()
 			setUI()
+			setCamera()
 			//--------------------------------------------------
 			// Listener
 			//--------------------------------------------------			
 			butScan.addEventListener(MouseEvent.CLICK, setQRReader)
+			butText.addEventListener(MouseEvent.CLICK, setText)
+		}
+
+		private function setCamera():void
+		{
+
+			while (layerCam.numChildren)
+			{
+				layerCam.removeChildAt(0)
+			}
+
+			var camW:int=stage.stageWidth
+			var camH:int=stage.stageHeight
+
+			// Create the camera
+			cam=Camera.getCamera();
+			cam.setMode(camW, camH, stage.frameRate);
+			cam.setQuality(0, 100)
+
+			// Create a video <--------scene we see
+			vid=new Video(camW, camH);
+			vid.attachCamera(cam);
+//			vid.y=-102
+			layerCam.addChild(vid)
+
+
+		}
+
+		protected function setText(event:MouseEvent):void
+		{
+			if (!tag_Text)
+			{
+				tag_Text=true
+				layerText.visible=true
+			}
+			else
+			{
+				tag_Text=false
+				layerText.visible=false
+
+			}
+
 		}
 
 		public static function onRun():void
@@ -113,6 +170,18 @@ package
 					difH=obj_geo.heading - preH
 				}
 
+				/*if (difH < 0)
+				{
+					trace("負")
+				}
+				else if (difH > 0)
+				{
+					trace("正")
+
+
+				}*/
+
+
 				disP=(difH * -1) //乘負數，網頁移動位置與視角相反
 				disP*=moveRate //<-網頁移動的距離比率
 				preH=obj_geo.heading
@@ -128,6 +197,24 @@ package
 		private static function makeMovement():void
 		{
 			ball.x+=disP
+//			trace("ball.x= " + ball.x)
+		/*	if ((ball.x > 0)&&(disP>0))
+			{
+				ball.rotationY+=6
+			}
+			else if ((ball.x < 0)&&(disP<0))
+			{
+				ball.rotationY-=6
+			}*/
+				
+			if (disP>0)
+			{
+				ball.rotationY+=4
+			}
+			else if (disP<0)
+			{
+				ball.rotationY-=4
+			}
 			//	
 			if (tag_loaded)
 			{
@@ -142,13 +229,14 @@ package
 
 			setDefaultValue()
 			//
-			layerText.addChild(obj_accl.accTextField)
 			obj_geo.geoTextField.y=150
-			layerText.addChild(obj_geo.geoTextField)
 			//
 			text_diff.x=450
 			text_diff.scaleX=text_diff.scaleY=4
 			text_diff.autoSize=TextFieldAutoSize.LEFT
+			//	
+			layerText.addChild(obj_accl.accTextField)
+			layerText.addChild(obj_geo.geoTextField)
 			layerText.addChild(text_diff)
 
 		}
@@ -192,37 +280,60 @@ package
 		{
 
 			butScan.graphics.beginFill(0xFF0000)
-			butScan.graphics.drawCircle(100, 100, 100)
+			butScan.graphics.drawCircle(50, 500, 50)
+			butText.graphics.beginFill(0x00FF00)
+			butText.graphics.drawCircle(150, 500, 50)
 			//	
 			layerUI.addChild(butScan)
+			layerUI.addChild(butText)
 			//
 
-			ball.graphics.beginFill(0xFF0000)
-			ball.graphics.drawCircle(stage.stageWidth / 2, stage.stageHeight / 2, 50)
+			ball.graphics.beginFill(0xFF0000, .5)
+//			ball.graphics.drawCircle(stage.stageWidth / 2, stage.stageHeight / 2, 50)
+			ball.graphics.drawRect((stage.stageWidth / 2) - (400 / 2), (stage.stageHeight / 2) - (400 / 2), 400, 400)
+//			ball.rotationX=-20
+
+
+
 			addChild(ball)
 
 		}
 
 		private function setQRReader(e:MouseEvent):void
 		{
-			qr=new QRZBar();
+			qr=new QRZBar()
 			qr.scan();
+
 			//
 			qr.addEventListener(QRZBarEvent.SCANNED, scannedHandler);
+//			qr.addEventListener(QRZBarEvent.CANCELED_SCAN, scannedHandler);
 
 		}
 
 		protected function scannedHandler(event:QRZBarEvent):void
 		{
 			qr.removeEventListener(QRZBarEvent.SCANNED, scannedHandler);
+			setCamera()
+
+//			trace("cam= "+cam.activityLevel)
+//			trace("vid= "+vid)
+//			vid.attachCamera(cam)
+//			trace("cam= "+cam.activityLevel)
+//			trace("vid stage= "+vid.stage)
+
 
 			var url:String=event.result
 			webView=new StageWebView();
 			webView.stage=this.stage;
 			webView.loadURL(url)
 			webView.addEventListener(Event.COMPLETE, loadFinishHandler)
-
 		}
+
+		/*protected function cancelHandler(event:QRZBarEvent):void
+		{
+			setCamera()
+
+		}*/
 
 		protected function loadFinishHandler(event:Event):void
 		{
