@@ -4,12 +4,15 @@ package
 	import com.rancondev.extensions.qrzbar.QRZBarEvent;
 
 	import flash.display.MovieClip;
+	import flash.display.Shape;
 	import flash.display.Sprite;
 	import flash.display.StageOrientation;
 	import flash.events.Event;
 	import flash.events.MouseEvent;
 	import flash.events.TimerEvent;
+	import flash.geom.Matrix3D;
 	import flash.geom.Rectangle;
+	import flash.geom.Vector3D;
 	import flash.media.Camera;
 	import flash.media.StageWebView;
 	import flash.media.Video;
@@ -33,7 +36,7 @@ package
 		private var layerCam:Sprite=new Sprite()
 		private var butScan:Sprite=new Sprite()
 		private var butText:Sprite=new Sprite()
-		private static var ball:MovieClip=new MovieClip()
+		private static var ball:Shape=new Shape()
 		//
 		public static var obj_accl:acclClass=new acclClass()
 		public static var obj_geo:geoClass=new geoClass()
@@ -51,9 +54,11 @@ package
 		public static var preH:Number=0 //pre Heading Value
 		public static var disP:Number=0 //the distance website should move 
 		private static var moveRate:int=6; //move distance,mapping to stage
+		public static var myMatrix:Matrix3D=new Matrix3D()
+
 		//
 		public static var webView:StageWebView
-		private static var tag_loaded:Boolean=false;
+		private static var tag_loaded:Boolean=false; //web load complete
 		public static var moveRect:Rectangle=new Rectangle(0, 0, 800 / 2, 600 / 2)
 		private static var tag_Text:Boolean=false; //show/hide text
 		//
@@ -185,7 +190,8 @@ package
 				disP=(difH * -1) //乘負數，網頁移動位置與視角相反
 				disP*=moveRate //<-網頁移動的距離比率
 				preH=obj_geo.heading
-				//	
+				//
+				myMatrix=ball.transform.matrix3D //設定ball的matrix
 				makeMovement()
 				//	
 				text_diff.text="diifX= " + difX.toFixed(2) + "\n" + "diifY= " + difY.toFixed(2) + "\n" + "diifZ= " + difZ.toFixed(2) + "\n" + "defaultH= " + defaultH + "\n" + "diifH= " + difH.toFixed(2) + "\n" + "disP= " + disP.toFixed(2)
@@ -196,33 +202,44 @@ package
 
 		private static function makeMovement():void
 		{
-			ball.x+=disP
-//			trace("ball.x= " + ball.x)
-		/*	if ((ball.x > 0)&&(disP>0))
+
+			var moveHeading:Number=obj_geo.heading - defaultH
+			var myVector3D:Vector3D=new Vector3D(400, 0, 0, 0)
+//			ball.x+=disP
+			
+	
+			//
+			if (Math.abs(moveHeading) < 90)
 			{
-				ball.rotationY+=6
-			}
-			else if ((ball.x < 0)&&(disP<0))
-			{
-				ball.rotationY-=6
-			}*/
+				myMatrix.appendTranslation(disP,0,0)
 				
-			if (disP>0)
-			{
-				ball.rotationY+=4
+				if (disP > 0)
+				{
+					myMatrix.appendRotation((Math.abs(moveHeading))/moveRate, Vector3D.Y_AXIS, myVector3D)
+
+				}
+				else if (disP < 0)
+				{
+					myMatrix.appendRotation((Math.abs(moveHeading) * -1)/moveRate, Vector3D.Y_AXIS, myVector3D)
+
+				}
+				
+				
+				ball.transform.matrix3D=myMatrix
+					
 			}
-			else if (disP<0)
-			{
-				ball.rotationY-=4
-			}
-			//	
+
+
 			if (tag_loaded)
 			{
+				//
 				moveRect.x+=disP
 				webView.viewPort=moveRect
 			}
 
 		}
+
+
 
 		private function setAccl():void
 		{
@@ -288,10 +305,12 @@ package
 			layerUI.addChild(butText)
 			//
 
+			ball.x=ball.y=ball.z=0
 			ball.graphics.beginFill(0xFF0000, .5)
 //			ball.graphics.drawCircle(stage.stageWidth / 2, stage.stageHeight / 2, 50)
-			ball.graphics.drawRect((stage.stageWidth / 2) - (400 / 2), (stage.stageHeight / 2) - (400 / 2), 400, 400)
-//			ball.rotationX=-20
+			ball.graphics.drawRect((stage.stageWidth / 2) - (400 / 2), (stage.stageHeight / 2) - (400 / 2), 400, 300)
+			ball.graphics.beginFill(0xFFFFFF, .5)
+			ball.graphics.drawCircle((stage.stageWidth / 2) + (400 / 2),(stage.stageHeight / 2) + (300/2), 50)	
 
 
 
@@ -340,6 +359,11 @@ package
 
 			tag_loaded=true
 
+		}
+
+		public function mapping(v:Number, a:Number, b:Number, x:Number=0, y:Number=1):Number
+		{
+			return (v == a) ? x : (v - a) * (y - x) / (b - a) + x;
 		}
 
 	}
