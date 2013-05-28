@@ -3,7 +3,6 @@ package
 	import com.rancondev.extensions.qrzbar.QRZBar;
 	import com.rancondev.extensions.qrzbar.QRZBarEvent;
 	
-	import flash.display.MovieClip;
 	import flash.display.Shape;
 	import flash.display.Sprite;
 	import flash.display.StageOrientation;
@@ -38,6 +37,7 @@ package
 		private var butScan:Sprite=new Sprite()
 		private var butText:Sprite=new Sprite()
 		private static var ball:Shape=new Shape()
+		private static var center:Shape=new Shape()
 		//
 		public static var obj_accl:acclClass=new acclClass()
 		public static var obj_geo:geoClass=new geoClass()
@@ -57,16 +57,7 @@ package
 		private static var moveRate:int=6; //move distance,mapping to stage
 		public static var basicMatrix:Matrix3D=new Matrix3D()
 		//
-		public static var center:Sprite=new Sprite() //標示中心的圓點
-		public static var angle:Number=0; // 初始的环绕角度
-		public static var speed:Number=8; // 每帧环绕像素数
-		public static var distance:Number=800; // 轨道距原点的距离
-		public static var rad:Number; // 角度转换成弧度
-		public static var preX:Number=0
-		public static var myMatrix:Matrix3D=new Matrix3D()
-		public static var myVector:Vector3D=new Vector3D(0, 0, 0)
-		public static var centerMatrix:Matrix3D=new Matrix3D()
-		public static var centerVector:Vector3D=new Vector3D(0, 0, 0)	
+		public static var obj_rotate:rotateClass
 		//
 		public static var webView:StageWebView
 		private static var tag_loaded:Boolean=false; //web load complete
@@ -75,12 +66,8 @@ package
 		//
 		public var cam:Camera
 		public var vid:Video
-
-
 		//
 		public static var text_diff:TextField=new TextField()
-
-		
 
 
 
@@ -188,18 +175,6 @@ package
 					difH=obj_geo.heading - preH
 				}
 
-				/*if (difH < 0)
-				{
-					trace("負")
-				}
-				else if (difH > 0)
-				{
-					trace("正")
-
-
-				}*/
-
-
 				disP=(difH * -1) //乘負數，網頁移動位置與視角相反
 				disP*=moveRate //<-網頁移動的距離比率
 				preH=obj_geo.heading
@@ -215,9 +190,8 @@ package
 
 		private static function makeMovement():void
 		{
-
-//			basicRotationY()
-			degreeRotation()
+			
+			obj_rotate.start(disP)
 
 
 			if (tag_loaded)
@@ -229,162 +203,9 @@ package
 
 		}
 		
-		private static function degreeRotation():void
-		{
-			
-			rad=angle * (Math.PI / 180);
-			//
-			ball.z=distance * Math.cos(rad); // 沿z轴定位盘旋物
-			ball.x=distance * Math.sin(rad); // 沿x轴定位盘旋物
-			//
-//			var _x:Number=event.target.mouseX
-//			var moveHeading:Number=obj_geo.heading - defaultH
-			//			
-			centerMatrix=ball.transform.matrix3D //拿到ball的位置
-			center.x=centerMatrix.position.x + ball.width / 2 //移到中心點
-			center.z=centerMatrix.position.z 
-			//	
-			myMatrix=ball.transform.matrix3D//拿到ball的位置
-			myVector.x=myMatrix.position.x//將ball的x給vector3D
-			myMatrix.appendTranslation(400-ball.width/2, 0, 0)//將方塊移動畫面中心
-			//	
-//			if ((disP > 0) && (angle > -90))
-			if (disP < 0)
-			{//如果現在的x-之前的x是正數＝滑鼠向右移動
-				
-				//trace("減,往左")
-				//ball.rotationY-=speed
-				angle-=speed; //对象顺时针圆周运动
-				myMatrix.appendRotation(-2, Vector3D.Y_AXIS, myVector)//旋轉-2,Ｙ軸,旋轉中心點移到myVector的位置
-				
-			}
-//			else if ((disP< 0) && (angle < 90))
-			else if (disP > 0)
-			{
-				//	trace("加,往右")
-				//ball.rotationY+=speed
-				angle+=speed; //对象逆时针圆周运动
-				myMatrix.appendRotation(2, Vector3D.Y_AXIS, myVector)
-				
-			}
-			else
-			{
-				//trace("不動")
-			}
-			
-			
-//			preX=moveHeading
-			
-		}
-		
-		private static function basicRotationY():void
-		{
-			var moveHeading:Number=obj_geo.heading - defaultH
-			var myVector3D:Vector3D=new Vector3D(400, 0, 0, 0)
-			//			ball.x+=disP
-			
-			
-			//
-			if (Math.abs(moveHeading) < 90)
-			{
-				basicMatrix.appendTranslation(disP,0,0)
-				
-				if (disP > 0)
-				{
-					basicMatrix.appendRotation((Math.abs(moveHeading))/moveRate, Vector3D.Y_AXIS, myVector3D)
-					
-				}
-				else if (disP < 0)
-				{
-					basicMatrix.appendRotation((Math.abs(moveHeading) * -1)/moveRate, Vector3D.Y_AXIS, myVector3D)
-					
-				}
-				
-				
-				ball.transform.matrix3D=basicMatrix
-				
-			}
-			
-		}
 
 
-		private function setAccl():void
-		{
 
-			setDefaultValue()
-			//
-			obj_geo.geoTextField.y=150
-			//
-			text_diff.x=450
-			text_diff.scaleX=text_diff.scaleY=4
-			text_diff.autoSize=TextFieldAutoSize.LEFT
-			//	
-			layerText.addChild(obj_accl.accTextField)
-			layerText.addChild(obj_geo.geoTextField)
-			layerText.addChild(text_diff)
-
-		}
-
-		private function setDefaultValue():void
-		{
-			timer_default=new Timer(3000, 1)
-			timer_default.addEventListener(TimerEvent.TIMER_COMPLETE, setValueHandler)
-			timer_default.start()
-
-		}
-
-		protected function setValueHandler(event:TimerEvent):void
-		{
-			//--------------------------------------------------
-			// 程式啓動後一段時間，才設定初始角度
-			//--------------------------------------------------
-			defaultX=obj_accl.rollingX
-			defaultY=obj_accl.rollingY
-			defaultZ=obj_accl.rollingZ
-			defaultH=obj_geo.heading
-			preH=defaultH
-			//	
-			timer_default.stop()
-			timer_default.removeEventListener(TimerEvent.TIMER_COMPLETE, setValueHandler)
-			trace("set complete")
-			trace("defaultX= " + defaultX)
-			trace("defaultY= " + defaultY)
-			trace("defaultZ= " + defaultZ)
-			trace("defaultH= " + defaultH)
-			trace("default preH= " + preH)
-			trace("default Heading= " + obj_geo.heading)
-			trace("-------")
-			tag_start=true
-
-
-		}
-
-
-		private function setUI():void
-		{
-
-			butScan.graphics.beginFill(0xFF0000)
-			butScan.graphics.drawCircle(50, 500, 50)
-			butText.graphics.beginFill(0x00FF00)
-			butText.graphics.drawCircle(150, 500, 50)
-			//	
-			layerUI.addChild(butScan)
-			layerUI.addChild(butText)
-			//
-
-			ball.x=ball.y=ball.z=0
-			ball.graphics.beginFill(0xFF0000, .5)
-//			ball.graphics.drawRect((stage.stageWidth / 2) - (400 / 2), (stage.stageHeight / 2) - (400 / 2), 400, 300)//
-			ball.graphics.drawRect(0, (stage.stageHeight / 2) - (400 / 2), 400, 300)
-//			ball.graphics.beginFill(0xFFFFFF, .5)
-//			ball.graphics.drawCircle((stage.stageWidth / 2) + (400 / 2),(stage.stageHeight / 2) + (300/2), 50)	
-			layerContent.addChild(ball)
-			//
-			center.graphics.beginFill(0x00FF00)
-			center.graphics.drawCircle(400-ball.width/2, stage.stageHeight / 2, 3)
-			layerContent.addChild(center)
-
-		}
 
 		private function setQRReader(e:MouseEvent):void
 		{
@@ -427,6 +248,93 @@ package
 
 			tag_loaded=true
 
+		}
+		
+		//--------------------------------------------------
+		//
+		// set function
+		//
+		//--------------------------------------------------
+		
+		
+		private function setAccl():void
+		{
+			
+			setDefaultValue()
+			//
+			obj_geo.geoTextField.y=150
+			//
+			text_diff.x=450
+			text_diff.scaleX=text_diff.scaleY=4
+			text_diff.autoSize=TextFieldAutoSize.LEFT
+			//	
+			layerText.addChild(obj_accl.accTextField)
+			layerText.addChild(obj_geo.geoTextField)
+			layerText.addChild(text_diff)
+			
+		}
+		
+		private function setDefaultValue():void
+		{
+			timer_default=new Timer(3000, 1)
+			timer_default.addEventListener(TimerEvent.TIMER_COMPLETE, setValueHandler)
+			timer_default.start()
+			
+		}
+		
+		protected function setValueHandler(event:TimerEvent):void
+		{
+			//--------------------------------------------------
+			// 程式啓動後一段時間，才設定初始角度
+			//--------------------------------------------------
+			defaultX=obj_accl.rollingX
+			defaultY=obj_accl.rollingY
+			defaultZ=obj_accl.rollingZ
+			defaultH=obj_geo.heading
+			preH=defaultH
+			//	
+			timer_default.stop()
+			timer_default.removeEventListener(TimerEvent.TIMER_COMPLETE, setValueHandler)
+			trace("set complete")
+			trace("defaultX= " + defaultX)
+			trace("defaultY= " + defaultY)
+			trace("defaultZ= " + defaultZ)
+			trace("defaultH= " + defaultH)
+			trace("default preH= " + preH)
+			trace("default Heading= " + obj_geo.heading)
+			trace("-------")
+			tag_start=true
+			
+			
+		}
+		
+		
+		private function setUI():void
+		{
+			
+			butScan.graphics.beginFill(0xFF0000)
+			butScan.graphics.drawCircle(50, 500, 50)
+			butText.graphics.beginFill(0x00FF00)
+			butText.graphics.drawCircle(150, 500, 50)
+			//	
+			layerUI.addChild(butScan)
+			layerUI.addChild(butText)
+			//
+			
+			ball.x=ball.y=ball.z=0
+			ball.graphics.beginFill(0xFF0000, .5)
+			ball.graphics.drawRect(0, (stage.stageHeight / 2) - (400 / 2), 400, 300)
+			layerContent.addChild(ball)
+			//
+			center.graphics.beginFill(0x00FF00)
+			center.graphics.drawCircle(400-ball.width/2, stage.stageHeight / 2, 3)
+			layerContent.addChild(center)
+			//
+			obj_rotate=new rotateClass(ball,center)
+			obj_rotate.setPointStart=ball.width/2
+			addChild(obj_rotate)
+			
+			
 		}
 
 
