@@ -2,7 +2,7 @@ package
 {
 	import com.rancondev.extensions.qrzbar.QRZBar;
 	import com.rancondev.extensions.qrzbar.QRZBarEvent;
-
+	
 	import flash.display.MovieClip;
 	import flash.display.Shape;
 	import flash.display.Sprite;
@@ -31,6 +31,7 @@ package
 	{
 
 		private var qr:QRZBar;
+		private var layerContent:Sprite=new Sprite();
 		public var layerText:Sprite=new Sprite()
 		private var layerUI:Sprite=new Sprite()
 		private var layerCam:Sprite=new Sprite()
@@ -54,8 +55,18 @@ package
 		public static var preH:Number=0 //pre Heading Value
 		public static var disP:Number=0 //the distance website should move 
 		private static var moveRate:int=6; //move distance,mapping to stage
+		public static var basicMatrix:Matrix3D=new Matrix3D()
+		//
+		public static var center:Sprite=new Sprite() //標示中心的圓點
+		public static var angle:Number=0; // 初始的环绕角度
+		public static var speed:Number=8; // 每帧环绕像素数
+		public static var distance:Number=800; // 轨道距原点的距离
+		public static var rad:Number; // 角度转换成弧度
+		public static var preX:Number=0
 		public static var myMatrix:Matrix3D=new Matrix3D()
-
+		public static var myVector:Vector3D=new Vector3D(0, 0, 0)
+		public static var centerMatrix:Matrix3D=new Matrix3D()
+		public static var centerVector:Vector3D=new Vector3D(0, 0, 0)	
 		//
 		public static var webView:StageWebView
 		private static var tag_loaded:Boolean=false; //web load complete
@@ -69,6 +80,7 @@ package
 		//
 		public static var text_diff:TextField=new TextField()
 
+		
 
 
 
@@ -93,6 +105,7 @@ package
 			//--------------------------------------------------
 			layerText.visible=false
 			addChild(layerCam)
+			addChild(layerContent)
 			addChild(layerText)
 			addChild(layerUI)
 			//--------------------------------------------------
@@ -191,7 +204,7 @@ package
 				disP*=moveRate //<-網頁移動的距離比率
 				preH=obj_geo.heading
 				//
-				myMatrix=ball.transform.matrix3D //設定ball的matrix
+				basicMatrix=ball.transform.matrix3D //設定ball的matrix
 				makeMovement()
 				//	
 				text_diff.text="diifX= " + difX.toFixed(2) + "\n" + "diifY= " + difY.toFixed(2) + "\n" + "diifZ= " + difZ.toFixed(2) + "\n" + "defaultH= " + defaultH + "\n" + "diifH= " + difH.toFixed(2) + "\n" + "disP= " + disP.toFixed(2)
@@ -203,31 +216,8 @@ package
 		private static function makeMovement():void
 		{
 
-			var moveHeading:Number=obj_geo.heading - defaultH
-			var myVector3D:Vector3D=new Vector3D(400, 0, 0, 0)
-//			ball.x+=disP
-			
-	
-			//
-			if (Math.abs(moveHeading) < 90)
-			{
-				myMatrix.appendTranslation(disP,0,0)
-				
-				if (disP > 0)
-				{
-					myMatrix.appendRotation((Math.abs(moveHeading))/moveRate, Vector3D.Y_AXIS, myVector3D)
-
-				}
-				else if (disP < 0)
-				{
-					myMatrix.appendRotation((Math.abs(moveHeading) * -1)/moveRate, Vector3D.Y_AXIS, myVector3D)
-
-				}
-				
-				
-				ball.transform.matrix3D=myMatrix
-					
-			}
+//			basicRotationY()
+			degreeRotation()
 
 
 			if (tag_loaded)
@@ -238,7 +228,84 @@ package
 			}
 
 		}
-
+		
+		private static function degreeRotation():void
+		{
+			
+			rad=angle * (Math.PI / 180);
+			//
+			ball.z=distance * Math.cos(rad); // 沿z轴定位盘旋物
+			ball.x=distance * Math.sin(rad); // 沿x轴定位盘旋物
+			//
+//			var _x:Number=event.target.mouseX
+//			var moveHeading:Number=obj_geo.heading - defaultH
+			//			
+			centerMatrix=ball.transform.matrix3D //拿到ball的位置
+			center.x=centerMatrix.position.x + ball.width / 2 //移到中心點
+			center.z=centerMatrix.position.z 
+			//	
+			myMatrix=ball.transform.matrix3D//拿到ball的位置
+			myVector.x=myMatrix.position.x//將ball的x給vector3D
+			myMatrix.appendTranslation(400-ball.width/2, 0, 0)//將方塊移動畫面中心
+			//	
+//			if ((disP > 0) && (angle > -90))
+			if (disP < 0)
+			{//如果現在的x-之前的x是正數＝滑鼠向右移動
+				
+				//trace("減,往左")
+				//ball.rotationY-=speed
+				angle-=speed; //对象顺时针圆周运动
+				myMatrix.appendRotation(-2, Vector3D.Y_AXIS, myVector)//旋轉-2,Ｙ軸,旋轉中心點移到myVector的位置
+				
+			}
+//			else if ((disP< 0) && (angle < 90))
+			else if (disP > 0)
+			{
+				//	trace("加,往右")
+				//ball.rotationY+=speed
+				angle+=speed; //对象逆时针圆周运动
+				myMatrix.appendRotation(2, Vector3D.Y_AXIS, myVector)
+				
+			}
+			else
+			{
+				//trace("不動")
+			}
+			
+			
+//			preX=moveHeading
+			
+		}
+		
+		private static function basicRotationY():void
+		{
+			var moveHeading:Number=obj_geo.heading - defaultH
+			var myVector3D:Vector3D=new Vector3D(400, 0, 0, 0)
+			//			ball.x+=disP
+			
+			
+			//
+			if (Math.abs(moveHeading) < 90)
+			{
+				basicMatrix.appendTranslation(disP,0,0)
+				
+				if (disP > 0)
+				{
+					basicMatrix.appendRotation((Math.abs(moveHeading))/moveRate, Vector3D.Y_AXIS, myVector3D)
+					
+				}
+				else if (disP < 0)
+				{
+					basicMatrix.appendRotation((Math.abs(moveHeading) * -1)/moveRate, Vector3D.Y_AXIS, myVector3D)
+					
+				}
+				
+				
+				ball.transform.matrix3D=basicMatrix
+				
+			}
+			
+		}
 
 
 		private function setAccl():void
@@ -307,14 +374,15 @@ package
 
 			ball.x=ball.y=ball.z=0
 			ball.graphics.beginFill(0xFF0000, .5)
-//			ball.graphics.drawCircle(stage.stageWidth / 2, stage.stageHeight / 2, 50)
-			ball.graphics.drawRect((stage.stageWidth / 2) - (400 / 2), (stage.stageHeight / 2) - (400 / 2), 400, 300)
-			ball.graphics.beginFill(0xFFFFFF, .5)
-			ball.graphics.drawCircle((stage.stageWidth / 2) + (400 / 2),(stage.stageHeight / 2) + (300/2), 50)	
-
-
-
-			addChild(ball)
+//			ball.graphics.drawRect((stage.stageWidth / 2) - (400 / 2), (stage.stageHeight / 2) - (400 / 2), 400, 300)//
+			ball.graphics.drawRect(0, (stage.stageHeight / 2) - (400 / 2), 400, 300)
+//			ball.graphics.beginFill(0xFFFFFF, .5)
+//			ball.graphics.drawCircle((stage.stageWidth / 2) + (400 / 2),(stage.stageHeight / 2) + (300/2), 50)	
+			layerContent.addChild(ball)
+			//
+			center.graphics.beginFill(0x00FF00)
+			center.graphics.drawCircle(400-ball.width/2, stage.stageHeight / 2, 3)
+			layerContent.addChild(center)
 
 		}
 
@@ -361,10 +429,6 @@ package
 
 		}
 
-		public function mapping(v:Number, a:Number, b:Number, x:Number=0, y:Number=1):Number
-		{
-			return (v == a) ? x : (v - a) * (y - x) / (b - a) + x;
-		}
 
 	}
 }
