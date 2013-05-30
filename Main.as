@@ -2,7 +2,7 @@ package
 {
 	import com.rancondev.extensions.qrzbar.QRZBar;
 	import com.rancondev.extensions.qrzbar.QRZBarEvent;
-	
+
 	import flash.display.Shape;
 	import flash.display.Sprite;
 	import flash.display.StageOrientation;
@@ -11,7 +11,6 @@ package
 	import flash.events.TimerEvent;
 	import flash.geom.Matrix3D;
 	import flash.geom.Rectangle;
-	import flash.geom.Vector3D;
 	import flash.media.Camera;
 	import flash.media.StageWebView;
 	import flash.media.Video;
@@ -58,6 +57,8 @@ package
 		public static var basicMatrix:Matrix3D=new Matrix3D()
 		//
 		public static var obj_rotate:rotateClass
+		public static var preZ:Number=0
+		public static var disZ:Number=0
 		//
 		public static var webView:StageWebView
 		private static var tag_loaded:Boolean=false; //web load complete
@@ -106,6 +107,7 @@ package
 			//--------------------------------------------------			
 			butScan.addEventListener(MouseEvent.CLICK, setQRReader)
 			butText.addEventListener(MouseEvent.CLICK, setText)
+			stage.addEventListener(Event.ENTER_FRAME, onRun)
 		}
 
 		private function setCamera():void
@@ -129,8 +131,6 @@ package
 			vid.attachCamera(cam);
 //			vid.y=-102
 			layerCam.addChild(vid)
-
-
 		}
 
 		protected function setText(event:MouseEvent):void
@@ -149,7 +149,7 @@ package
 
 		}
 
-		public static function onRun():void
+		public static function onRun(e:Event):void
 		{
 			if (tag_start)
 			{
@@ -182,7 +182,7 @@ package
 				basicMatrix=ball.transform.matrix3D //設定ball的matrix
 				makeMovement()
 				//	
-				text_diff.text="diifX= " + difX.toFixed(2) + "\n" + "diifY= " + difY.toFixed(2) + "\n" + "diifZ= " + difZ.toFixed(2) + "\n" + "defaultH= " + defaultH + "\n" + "diifH= " + difH.toFixed(2) + "\n" + "disP= " + disP.toFixed(2)
+				text_diff.text="diifX= " + difX.toFixed(2) + "\n" + "diifY= " + difY.toFixed(2) + "\n" + "diifZ= " + difZ.toFixed(2) + "\n" + "defaultH= " + defaultH + "\n" + "diifH= " + difH.toFixed(2) + "\n" + "disP= " + disP.toFixed(2) + "\n" + "defaultZ= " + defaultZ
 
 			}
 
@@ -191,7 +191,28 @@ package
 		private static function makeMovement():void
 		{
 			
-			obj_rotate.start(disP)
+
+			if (obj_accl.rollingZ > 0)
+			{
+				disZ=obj_accl.rollingZ - preZ
+				
+			}
+			else if (obj_accl.rollingZ < 0)
+			{
+				
+				disZ=(Math.abs(obj_accl.rollingZ) - Math.abs(preZ))*-1
+			}
+			
+			difZ*=-1*moveRate
+			trace("difZ= "+difZ.toFixed(2))
+			trace("--------------------------------------")
+			
+			
+			obj_rotate.start(disP,disZ)  //call the left-right rotate matrix class's functoin
+			
+			preZ=obj_accl.rollingZ 
+
+
 
 
 			if (tag_loaded)
@@ -202,17 +223,18 @@ package
 			}
 
 		}
-		
-
-
 
 
 		private function setQRReader(e:MouseEvent):void
 		{
 			qr=new QRZBar()
+//			qr = QRZBar.getInstance(); 
 			qr.scan();
 
+
 			//
+//			qr.addEventListener(QRZBarEvent.SCANNED_BAR_CODE, scannedHandler);
+//			qr.addEventListener(QRZBarEvent.CANCELED_SCAN, cancelHandler);
 			qr.addEventListener(QRZBarEvent.SCANNED, scannedHandler);
 //			qr.addEventListener(QRZBarEvent.CANCELED_SCAN, scannedHandler);
 
@@ -220,8 +242,11 @@ package
 
 		protected function scannedHandler(event:QRZBarEvent):void
 		{
+
+//			qr.removeEventListener(QRZBarEvent.SCANNED_BAR_CODE, scannedHandler);
+
 			qr.removeEventListener(QRZBarEvent.SCANNED, scannedHandler);
-			setCamera()
+//			setCamera()
 
 //			trace("cam= "+cam.activityLevel)
 //			trace("vid= "+vid)
@@ -237,11 +262,12 @@ package
 			webView.addEventListener(Event.COMPLETE, loadFinishHandler)
 		}
 
-		/*protected function cancelHandler(event:QRZBarEvent):void
+		protected function cancelHandler(event:QRZBarEvent):void
 		{
-			setCamera()
+//			setCamera()
+			trace("cancel")
 
-		}*/
+		}
 
 		protected function loadFinishHandler(event:Event):void
 		{
@@ -249,17 +275,17 @@ package
 			tag_loaded=true
 
 		}
-		
-		//--------------------------------------------------
+
+		//----------------------------------------------------------------------------------------------------
 		//
 		// set function
 		//
-		//--------------------------------------------------
-		
-		
+		//----------------------------------------------------------------------------------------------------
+
+
 		private function setAccl():void
 		{
-			
+
 			setDefaultValue()
 			//
 			obj_geo.geoTextField.y=150
@@ -271,17 +297,17 @@ package
 			layerText.addChild(obj_accl.accTextField)
 			layerText.addChild(obj_geo.geoTextField)
 			layerText.addChild(text_diff)
-			
+
 		}
-		
+
 		private function setDefaultValue():void
 		{
 			timer_default=new Timer(3000, 1)
 			timer_default.addEventListener(TimerEvent.TIMER_COMPLETE, setValueHandler)
 			timer_default.start()
-			
+
 		}
-		
+
 		protected function setValueHandler(event:TimerEvent):void
 		{
 			//--------------------------------------------------
@@ -292,6 +318,7 @@ package
 			defaultZ=obj_accl.rollingZ
 			defaultH=obj_geo.heading
 			preH=defaultH
+			preZ=defaultZ
 			//	
 			timer_default.stop()
 			timer_default.removeEventListener(TimerEvent.TIMER_COMPLETE, setValueHandler)
@@ -304,14 +331,14 @@ package
 			trace("default Heading= " + obj_geo.heading)
 			trace("-------")
 			tag_start=true
-			
-			
+
+
 		}
-		
-		
+
+
 		private function setUI():void
 		{
-			
+
 			butScan.graphics.beginFill(0xFF0000)
 			butScan.graphics.drawCircle(50, 500, 50)
 			butText.graphics.beginFill(0x00FF00)
@@ -320,21 +347,21 @@ package
 			layerUI.addChild(butScan)
 			layerUI.addChild(butText)
 			//
-			
+
 			ball.x=ball.y=ball.z=0
 			ball.graphics.beginFill(0xFF0000, .5)
 			ball.graphics.drawRect(0, (stage.stageHeight / 2) - (400 / 2), 400, 300)
 			layerContent.addChild(ball)
 			//
 			center.graphics.beginFill(0x00FF00)
-			center.graphics.drawCircle(400-ball.width/2, stage.stageHeight / 2, 3)
+			center.graphics.drawCircle(400 - ball.width / 2, stage.stageHeight / 2, 3)
 			layerContent.addChild(center)
 			//
-			obj_rotate=new rotateClass(ball,center)
-			obj_rotate.setPointStart=ball.width/2
+			obj_rotate=new rotateClass(ball, center)
+			obj_rotate.setPointStart=ball.width / 2
 			addChild(obj_rotate)
-			
-			
+
+
 		}
 
 
