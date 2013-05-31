@@ -35,40 +35,40 @@ package
 		private var layerCam:Sprite=new Sprite()
 		private var butScan:Sprite=new Sprite()
 		private var butText:Sprite=new Sprite()
-		private static var ball:Shape=new Shape()
-		private static var center:Shape=new Shape()
+		private var ball:Shape=new Shape()
+		private var center:Shape=new Shape()
 		//
-		public static var obj_accl:acclClass=new acclClass()
-		public static var obj_geo:geoClass=new geoClass()
-		public static var defaultX:Number=0
-		public static var defaultY:Number=0
-		public static var defaultZ:Number=0
-		public static var defaultH:Number=0
-		public static var timer_default:Timer
-		public static var tag_start:Boolean=false
+		public var obj_accl:acclClass=new acclClass()
+		public var obj_geo:geoClass=new geoClass()
+		public var defaultX:Number=0
+		public var defaultY:Number=0
+		public var defaultZ:Number=0
+		public var defaultH:Number=0
+		public var timer_default:Timer
+		public var tag_start:Boolean=false
 		//
-		public static var difX:Number=0
-		public static var difY:Number=0
-		public static var difZ:Number=0
-		public static var difH:Number=0 //the distance from last Heading Value
-		public static var preH:Number=0 //pre Heading Value
-		public static var disP:Number=0 //the distance website should move 
-		private static var moveRate:int=6; //move distance,mapping to stage
-		public static var basicMatrix:Matrix3D=new Matrix3D()
+		public var difX:Number=0
+		public var difY:Number=0
+		public var difZ:Number=0
+		public var difH:Number=0 //the distance from last Heading Value
+		public var preH:Number=0 //pre Heading Value
+		public var disP:Number=0 //the distance website should move 
+		private var moveRate:int=6; //move distance,mapping to stage
+		public var basicMatrix:Matrix3D=new Matrix3D()
 		//
-		public static var obj_rotate:rotateClass
-		public static var preZ:Number=0
-		public static var disZ:Number=0
+		public var obj_rotate:rotateClass
+		public var preZ:Number=0
+		public var disZ:Number=0
 		//
-		public static var webView:StageWebView
-		private static var tag_loaded:Boolean=false; //web load complete
-		public static var moveRect:Rectangle=new Rectangle(0, 0, 800 / 2, 600 / 2)
-		private static var tag_Text:Boolean=false; //show/hide text
+		public var webView:StageWebView
+		private var tag_loaded:Boolean=false; //web load complete
+		public var moveRect:Rectangle=new Rectangle(0, 0, 800 / 2, 600 / 2)
+		private var tag_Text:Boolean=false; //show/hide text
 		//
 		public var cam:Camera
 		public var vid:Video
 		//
-		public static var text_diff:TextField=new TextField()
+		public var text_diff:TextField=new TextField()
 
 
 
@@ -149,7 +149,8 @@ package
 
 		}
 
-		public static function onRun(e:Event):void
+		public function onRun(e:Event):void
+
 		{
 			if (tag_start)
 			{
@@ -188,38 +189,34 @@ package
 
 		}
 
-		private static function makeMovement():void
+		public function makeMovement():void
 		{
-			
-
-			if (obj_accl.rollingZ > 0)
-			{
-				disZ=obj_accl.rollingZ - preZ
-				
-			}
-			else if (obj_accl.rollingZ < 0)
-			{
-				
-				disZ=(Math.abs(obj_accl.rollingZ) - Math.abs(preZ))*-1
-			}
-			
-			difZ*=-1*moveRate
-			trace("difZ= "+difZ.toFixed(2))
-			trace("--------------------------------------")
-			
-			
-			obj_rotate.start(disP,disZ)  //call the left-right rotate matrix class's functoin
-			
-			preZ=obj_accl.rollingZ 
-
-
-
 
 			if (tag_loaded)
 			{
-				//
-				moveRect.x+=disP
-				webView.viewPort=moveRect
+
+				if (obj_accl.rollingZ > 0)
+				{
+					disZ=obj_accl.rollingZ - preZ
+
+				}
+				else if (obj_accl.rollingZ < 0)
+				{
+
+					disZ=(Math.abs(obj_accl.rollingZ) - Math.abs(preZ)) * -1
+				}
+
+				difZ*=-1 * moveRate
+//			trace("difZ= "+difZ.toFixed(2))
+//			trace("--------------------------------------")
+
+
+				obj_rotate.start(disP, disZ) //call the left-right rotate matrix class's functoin
+
+				preZ=obj_accl.rollingZ
+
+				webView.viewPort=ball.getBounds(this)
+
 			}
 
 		}
@@ -273,6 +270,12 @@ package
 		{
 
 			tag_loaded=true
+			//call rotate obj when qr-scan finished	
+			obj_rotate=new rotateClass(ball, null)
+			obj_rotate.setPointStart=ball.width / 2
+			addChild(obj_rotate)
+			//sign view port
+			webView.viewPort=ball.getBounds(this)
 
 		}
 
@@ -350,16 +353,16 @@ package
 
 			ball.x=ball.y=ball.z=0
 			ball.graphics.beginFill(0xFF0000, .5)
-			ball.graphics.drawRect(0, (stage.stageHeight / 2) - (400 / 2), 400, 300)
+			ball.graphics.drawRect(0, (stage.stageHeight / 2) - (400 / 2), 800, 600)
 			layerContent.addChild(ball)
 			//
 			center.graphics.beginFill(0x00FF00)
 			center.graphics.drawCircle(400 - ball.width / 2, stage.stageHeight / 2, 3)
 			layerContent.addChild(center)
 			//
-			obj_rotate=new rotateClass(ball, center)
-			obj_rotate.setPointStart=ball.width / 2
-			addChild(obj_rotate)
+//			obj_rotate=new rotateClass(ball, center)
+//			obj_rotate.setPointStart=ball.width / 2
+//			addChild(obj_rotate)
 
 
 		}

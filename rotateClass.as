@@ -67,6 +67,7 @@ package
 				trace("no stage!")
 			}
 			
+			
 		}
 		
 		
@@ -80,9 +81,9 @@ package
 			obj_now.y=distance * Math.sin(radY); // 沿x轴定位盘旋物
 
 			//
-			centerMatrix=obj_now.transform.matrix3D //拿到ball的位置
-			obj_center.x=centerMatrix.position.x + obj_now.width / 2 //移到中心點
-			obj_center.z=centerMatrix.position.z 
+//			centerMatrix=obj_now.transform.matrix3D //拿到ball的位置
+//			obj_center.x=centerMatrix.position.x + obj_now.width / 2 //移到中心點
+//			obj_center.z=centerMatrix.position.z 
 			//	
 			myMatrix=obj_now.transform.matrix3D//拿到ball的位置
 			myVector.x=myMatrix.position.x+(obj_now.width/2)  //將ball的x給vector3D
@@ -106,18 +107,16 @@ package
 			}else if ((_y  > 0) && (angleY > value_limitAngle*-1))
 			{//如果現在的x-之前的x是正數＝滑鼠向右移動
 				
-				trace("減,往上")
+//				trace("減,往上")
 				angleY-=speed; 
-				//				myMatrix.appendRotation(2, Vector3D.X_AXIS, myVector)//旋轉-2,Ｙ軸,旋轉中心點移到myVector的位置
 				obj_now.rotationX+=2	
 				
 			}
 			else if ((_y < 0) && (angleY < value_limitAngle))
 			{
 				
-				trace("加,往下")
+//				trace("加,往下")
 				angleY+=speed; 
-				//				myMatrix.appendRotation(-2, Vector3D.X_AXIS, myVector)
 				obj_now.rotationX-=2
 				
 			}
