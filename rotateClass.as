@@ -28,7 +28,7 @@ package
 		public var centerMatrix:Matrix3D=new Matrix3D()
 		public var centerVector:Vector3D=new Vector3D(0, 0, 0)
 		//
-		private var point_start:Number=500;
+		private var point_start:Number=0;
 
 			
 		
