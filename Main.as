@@ -15,8 +15,10 @@ package
 	import flash.media.Video;
 	import flash.text.TextField;
 	import flash.text.TextFieldAutoSize;
-	import flash.text.TextFormat;
 	import flash.utils.Timer;
+	
+	import net.hires.debug.Stats;
+	
 
 
 
@@ -39,7 +41,7 @@ package
 		private var butAddPic:Sprite=new Sprite()
 
 
-		private var frame:Sprite//=new Shape()
+//		private var frame:Sprite//=new Shape()
 		private var center:Shape=new Shape()
 		//
 		public var obj_accl:acclClass=new acclClass()
@@ -61,6 +63,7 @@ package
 //		public var basicMatrix:Matrix3D=new Matrix3D()
 		//
 		public var obj_rotate:rotateClass
+		public var arrray_rotate:Array=new Array()
 		public var preZ:Number=0
 		public var disZ:Number=0
 		//web mode
@@ -70,7 +73,8 @@ package
 		private var tag_Text:Boolean=false; //show/hide text
 		//text mode
 		private var tag_mode:String;
-		public var obj_text:TextField=new TextField()
+//		public var obj_text:TextField
+		public var obj_text:textClass
 		//
 		public var cam:Camera
 		public var vid:Video
@@ -94,6 +98,8 @@ package
 		{
 			stage.autoOrients=false
 			stage.setOrientation(StageOrientation.ROTATED_RIGHT)
+			addChild(new Stats())
+				
 			//--------------------------------------------------
 			// visual
 			//--------------------------------------------------
@@ -217,8 +223,13 @@ package
 
 				difZ*=-1 * moveRate
 				//
+				
+				for (var i:int = 0; i < arrray_rotate.length; i++) 
+				{	
+					var nowObj:Object=arrray_rotate[i]
+					nowObj.start(disP, disZ) //call the left-right rotate matrix class's functoin
 
-				obj_rotate.start(disP, disZ) //call the left-right rotate matrix class's functoin
+				}
 
 				preZ=obj_accl.rollingZ
 
@@ -236,16 +247,6 @@ package
 		protected function addTextHandler(event:MouseEvent):void
 		{
 			tag_mode="Text"
-			//set fram
-			frame=new Sprite()
-			frame.x=frame.y=frame.z=0
-			frame.graphics.beginFill(0x000000, .5)
-			frame.graphics.drawRect(0, 0, 400, 300)
-			layerContent.addChild(frame)
-			//set text
-			obj_text.autoSize=TextFieldAutoSize.LEFT
-			obj_text.defaultTextFormat=new TextFormat(null,40)
-			frame.addChild(obj_text)
 			//	
 			setQRReader(null)
 			
@@ -302,17 +303,13 @@ package
 			}
 			else if (tag_mode == "Text")
 			{
-				
-				obj_rotate=new rotateClass(frame, null)
-				//obj_rotate.setPointStart=frame.width / 2
-				layerContent.addChild(obj_rotate)
-				//
-				obj_text.text=url
-				//
+				//set text Object
+				obj_text=new textClass(url)
+				obj_rotate=new rotateClass(obj_text, null)
+				arrray_rotate.push(obj_rotate)
+				layerContent.addChild(obj_text)
+				//	
 				tag_loaded=true
-					
-				trace("obj_text= "+obj_text.y)
-				trace("frame.y= "+frame.y)
 
 			}	
 		}
@@ -330,11 +327,11 @@ package
 			tag_loaded=true
 
 				//call rotate obj when qr-scan finished	
-				obj_rotate=new rotateClass(frame, null)
-				obj_rotate.setPointStart=frame.width / 2
-				layerContent.addChild(obj_rotate)
+//				obj_rotate=new rotateClass(frame, null)
+//				obj_rotate.setPointStart=frame.width / 2
+//				layerContent.addChild(obj_rotate)
 				//sign view port
-				webView.viewPort=frame.getBounds(this)
+//				webView.viewPort=frame.getBounds(this)
 				
 				
 		}
