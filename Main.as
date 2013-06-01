@@ -2,21 +2,22 @@ package
 {
 	import com.rancondev.extensions.qrzbar.QRZBar;
 	import com.rancondev.extensions.qrzbar.QRZBarEvent;
-
+	
 	import flash.display.Shape;
 	import flash.display.Sprite;
 	import flash.display.StageOrientation;
 	import flash.events.Event;
 	import flash.events.MouseEvent;
 	import flash.events.TimerEvent;
-	import flash.geom.Matrix3D;
 	import flash.geom.Rectangle;
 	import flash.media.Camera;
-	import flash.media.StageWebView;
 	import flash.media.Video;
 	import flash.text.TextField;
 	import flash.text.TextFieldAutoSize;
 	import flash.utils.Timer;
+	
+	import net.hires.debug.Stats;
+	
 
 
 
@@ -28,15 +29,16 @@ package
 	public class Main extends Sprite
 	{
 
+		public var stats:Stats=new Stats()	
 		private var qr:QRZBar;
 		private var layerContent:Sprite=new Sprite();
 		public var layerText:Sprite=new Sprite()
 		private var layerUI:Sprite=new Sprite()
 		private var layerCam:Sprite=new Sprite()
 		private var butScan:Sprite=new Sprite()
-		private var butText:Sprite=new Sprite()
-		private var ball:Shape=new Shape()
-		private var center:Shape=new Shape()
+		private var butShowText:Sprite=new Sprite()
+		private var butAddText:Sprite=new Sprite()
+		private var butAddPic:Sprite=new Sprite()
 		//
 		public var obj_accl:acclClass=new acclClass()
 		public var obj_geo:geoClass=new geoClass()
@@ -54,20 +56,22 @@ package
 		public var preH:Number=0 //pre Heading Value
 		public var disP:Number=0 //the distance website should move 
 		private var moveRate:int=6; //move distance,mapping to stage
-		public var basicMatrix:Matrix3D=new Matrix3D()
 		//
 		public var obj_rotate:rotateClass
+		public var arrray_rotate:Array=new Array()
 		public var preZ:Number=0
 		public var disZ:Number=0
-		//
-		public var webView:StageWebView
+		//web mode
+		public var obj_web:webClass
 		private var tag_loaded:Boolean=false; //web load complete
 		public var moveRect:Rectangle=new Rectangle(0, 0, 800 / 2, 600 / 2)
 		private var tag_Text:Boolean=false; //show/hide text
+		//text mode
+		private var tag_mode:String;
+		public var obj_text:textClass
 		//
 		public var cam:Camera
 		public var vid:Video
-		//
 		public var text_diff:TextField=new TextField()
 
 
@@ -91,11 +95,13 @@ package
 			//--------------------------------------------------
 			// visual
 			//--------------------------------------------------
-			layerText.visible=false
+			layerText.visible=true
 			addChild(layerCam)
 			addChild(layerContent)
 			addChild(layerText)
 			addChild(layerUI)
+			stats.scaleX=stats.scaleY=2
+			addChild(stats)
 			//--------------------------------------------------
 			// function runs here
 			//--------------------------------------------------
@@ -106,9 +112,12 @@ package
 			// Listener
 			//--------------------------------------------------			
 			butScan.addEventListener(MouseEvent.CLICK, setQRReader)
-			butText.addEventListener(MouseEvent.CLICK, setText)
+			butShowText.addEventListener(MouseEvent.CLICK, setText)
+			butAddText.addEventListener(MouseEvent.CLICK, addTextHandler)
+			butAddPic.addEventListener(MouseEvent.CLICK, addPicHandler)
 			stage.addEventListener(Event.ENTER_FRAME, onRun)
 		}
+
 
 		private function setCamera():void
 		{
@@ -180,7 +189,7 @@ package
 				disP*=moveRate //<-網頁移動的距離比率
 				preH=obj_geo.heading
 				//
-				basicMatrix=ball.transform.matrix3D //設定ball的matrix
+//				basicMatrix=frame.transform.matrix3D //設定ball的matrix
 				makeMovement()
 				//	
 				text_diff.text="diifX= " + difX.toFixed(2) + "\n" + "diifY= " + difY.toFixed(2) + "\n" + "diifZ= " + difZ.toFixed(2) + "\n" + "defaultH= " + defaultH + "\n" + "diifH= " + difH.toFixed(2) + "\n" + "disP= " + disP.toFixed(2) + "\n" + "defaultZ= " + defaultZ
@@ -207,20 +216,44 @@ package
 				}
 
 				difZ*=-1 * moveRate
-//			trace("difZ= "+difZ.toFixed(2))
-//			trace("--------------------------------------")
+				//
+				
+				for (var i:int = 0; i < arrray_rotate.length; i++) 
+				{	
+					var nowObj:Object=arrray_rotate[i]
+					nowObj.start(disP, disZ) //call the left-right rotate matrix class's functoin
 
-
-				obj_rotate.start(disP, disZ) //call the left-right rotate matrix class's functoin
-
+				}
+				
 				preZ=obj_accl.rollingZ
 
-				webView.viewPort=ball.getBounds(this)
+//				webView.viewPort=frame.getBounds(this)
+//				tag_loaded=false
 
 			}
 
 		}
 
+		//--------------------------------------------------
+		//
+		// Handler Function
+		//
+		//--------------------------------------------------
+		protected function addTextHandler(event:MouseEvent):void
+		{
+			tag_mode="Text"
+			//	
+			setQRReader(null)
+			
+		}
+		
+		
+		
+		protected function addPicHandler(event:MouseEvent):void
+		{
+			
+			
+		}
 
 		private function setQRReader(e:MouseEvent):void
 		{
@@ -228,6 +261,7 @@ package
 //			qr = QRZBar.getInstance(); 
 			qr.scan();
 
+			tag_mode="Web"
 
 			//
 //			qr.addEventListener(QRZBarEvent.SCANNED_BAR_CODE, scannedHandler);
@@ -251,12 +285,33 @@ package
 //			trace("cam= "+cam.activityLevel)
 //			trace("vid stage= "+vid.stage)
 
-
 			var url:String=event.result
-			webView=new StageWebView();
-			webView.stage=this.stage;
-			webView.loadURL(url)
-			webView.addEventListener(Event.COMPLETE, loadFinishHandler)
+
+				
+			if (tag_mode == "Web")
+			{
+				obj_web=new webClass(url,this)
+				layerContent.addChild(obj_web)
+
+				obj_rotate=new rotateClass(obj_web, null)
+				arrray_rotate.push(obj_rotate)
+//				//
+				tag_loaded=true
+	
+
+				
+			}
+			else if (tag_mode == "Text")
+			{
+				//set text Object
+				obj_text=new textClass(url)
+				obj_rotate=new rotateClass(obj_text, null)
+				arrray_rotate.push(obj_rotate)
+				layerContent.addChild(obj_text)
+				//	
+				tag_loaded=true
+
+			}	
 		}
 
 		protected function cancelHandler(event:QRZBarEvent):void
@@ -266,18 +321,9 @@ package
 
 		}
 
-		protected function loadFinishHandler(event:Event):void
-		{
 
-			tag_loaded=true
-			//call rotate obj when qr-scan finished	
-			obj_rotate=new rotateClass(ball, null)
-			obj_rotate.setPointStart=ball.width / 2
-			addChild(obj_rotate)
-			//sign view port
-			webView.viewPort=ball.getBounds(this)
+		
 
-		}
 
 		//----------------------------------------------------------------------------------------------------
 		//
@@ -344,25 +390,17 @@ package
 
 			butScan.graphics.beginFill(0xFF0000)
 			butScan.graphics.drawCircle(50, 500, 50)
-			butText.graphics.beginFill(0x00FF00)
-			butText.graphics.drawCircle(150, 500, 50)
+			butShowText.graphics.beginFill(0x00FF00)
+			butShowText.graphics.drawCircle(150, 500, 50)
+			butAddText.graphics.beginFill(0x0000FF)
+			butAddText.graphics.drawCircle(250, 500, 50)
+			butAddPic.graphics.beginFill(0x0000F0)
+			butAddPic.graphics.drawCircle(350, 500, 50)
 			//	
 			layerUI.addChild(butScan)
-			layerUI.addChild(butText)
-			//
-
-			ball.x=ball.y=ball.z=0
-			ball.graphics.beginFill(0xFF0000, .5)
-			ball.graphics.drawRect(0, (stage.stageHeight / 2) - (400 / 2), 800, 600)
-			layerContent.addChild(ball)
-			//
-			center.graphics.beginFill(0x00FF00)
-			center.graphics.drawCircle(400 - ball.width / 2, stage.stageHeight / 2, 3)
-			layerContent.addChild(center)
-			//
-//			obj_rotate=new rotateClass(ball, center)
-//			obj_rotate.setPointStart=ball.width / 2
-//			addChild(obj_rotate)
+			layerUI.addChild(butShowText)
+			layerUI.addChild(butAddText)
+			layerUI.addChild(butAddPic)
 
 
 		}

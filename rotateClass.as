@@ -28,7 +28,7 @@ package
 		public var centerMatrix:Matrix3D=new Matrix3D()
 		public var centerVector:Vector3D=new Vector3D(0, 0, 0)
 		//
-		private var point_start:Number=500;
+		private var point_start:Number=0;
 
 			
 		
@@ -37,26 +37,12 @@ package
 			
 			obj_now=obj
 			obj_center=cent
-			//
-			
-			if(stage)
-			{ 
-				init()  
-			}else
-			{
-				addEventListener(Event.ADDED_TO_STAGE,init);
-			}
-			
-		}
-		
-		public function init(e:Event=null):void{
-			
 		}
 		
 		public function start(valueX:Number,valueY:Number):void
 		{		
 				
-			if(stage)
+			/*if(stage)
 			{
 				_x=valueX
 				_y=valueY
@@ -66,7 +52,11 @@ package
 			{
 				trace("no stage!")
 			}
+			*/
 			
+			_x=valueX
+			_y=valueY
+			onRun()
 			
 		}
 		
