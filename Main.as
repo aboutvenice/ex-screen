@@ -11,7 +11,6 @@ package
 	import flash.events.TimerEvent;
 	import flash.geom.Rectangle;
 	import flash.media.Camera;
-	import flash.media.StageWebView;
 	import flash.media.Video;
 	import flash.text.TextField;
 	import flash.text.TextFieldAutoSize;
@@ -30,6 +29,7 @@ package
 	public class Main extends Sprite
 	{
 
+		public var stats:Stats=new Stats()	
 		private var qr:QRZBar;
 		private var layerContent:Sprite=new Sprite();
 		public var layerText:Sprite=new Sprite()
@@ -39,10 +39,6 @@ package
 		private var butShowText:Sprite=new Sprite()
 		private var butAddText:Sprite=new Sprite()
 		private var butAddPic:Sprite=new Sprite()
-
-
-//		private var frame:Sprite//=new Shape()
-		private var center:Shape=new Shape()
 		//
 		public var obj_accl:acclClass=new acclClass()
 		public var obj_geo:geoClass=new geoClass()
@@ -60,20 +56,18 @@ package
 		public var preH:Number=0 //pre Heading Value
 		public var disP:Number=0 //the distance website should move 
 		private var moveRate:int=6; //move distance,mapping to stage
-//		public var basicMatrix:Matrix3D=new Matrix3D()
 		//
 		public var obj_rotate:rotateClass
 		public var arrray_rotate:Array=new Array()
 		public var preZ:Number=0
 		public var disZ:Number=0
 		//web mode
-		public var webView:StageWebView
+		public var obj_web:webClass
 		private var tag_loaded:Boolean=false; //web load complete
 		public var moveRect:Rectangle=new Rectangle(0, 0, 800 / 2, 600 / 2)
 		private var tag_Text:Boolean=false; //show/hide text
 		//text mode
 		private var tag_mode:String;
-//		public var obj_text:TextField
 		public var obj_text:textClass
 		//
 		public var cam:Camera
@@ -98,16 +92,16 @@ package
 		{
 			stage.autoOrients=false
 			stage.setOrientation(StageOrientation.ROTATED_RIGHT)
-			addChild(new Stats())
-				
 			//--------------------------------------------------
 			// visual
 			//--------------------------------------------------
-			layerText.visible=false
+			layerText.visible=true
 			addChild(layerCam)
 			addChild(layerContent)
 			addChild(layerText)
 			addChild(layerUI)
+			stats.scaleX=stats.scaleY=2
+			addChild(stats)
 			//--------------------------------------------------
 			// function runs here
 			//--------------------------------------------------
@@ -230,10 +224,11 @@ package
 					nowObj.start(disP, disZ) //call the left-right rotate matrix class's functoin
 
 				}
-
+				
 				preZ=obj_accl.rollingZ
 
 //				webView.viewPort=frame.getBounds(this)
+//				tag_loaded=false
 
 			}
 
@@ -266,6 +261,7 @@ package
 //			qr = QRZBar.getInstance(); 
 			qr.scan();
 
+			tag_mode="Web"
 
 			//
 //			qr.addEventListener(QRZBarEvent.SCANNED_BAR_CODE, scannedHandler);
@@ -294,10 +290,14 @@ package
 				
 			if (tag_mode == "Web")
 			{
-				webView=new StageWebView();
-				webView.stage=this.stage;
-				webView.loadURL(url)
-				webView.addEventListener(Event.COMPLETE, loadFinishHandler)
+				obj_web=new webClass(url,this)
+				layerContent.addChild(obj_web)
+
+				obj_rotate=new rotateClass(obj_web, null)
+				arrray_rotate.push(obj_rotate)
+//				//
+				tag_loaded=true
+	
 
 				
 			}
@@ -321,20 +321,6 @@ package
 
 		}
 
-		protected function loadFinishHandler(event:Event):void
-		{
-
-			tag_loaded=true
-
-				//call rotate obj when qr-scan finished	
-//				obj_rotate=new rotateClass(frame, null)
-//				obj_rotate.setPointStart=frame.width / 2
-//				layerContent.addChild(obj_rotate)
-				//sign view port
-//				webView.viewPort=frame.getBounds(this)
-				
-				
-		}
 
 		
 
@@ -415,20 +401,6 @@ package
 			layerUI.addChild(butShowText)
 			layerUI.addChild(butAddText)
 			layerUI.addChild(butAddPic)
-			//
-
-//			ball.x=ball.y=ball.z=0
-//			ball.graphics.beginFill(0xFF0000, .5)
-//			ball.graphics.drawRect(0, (stage.stageHeight / 2) - (400 / 2), 800, 600)
-//			layerContent.addChild(ball)
-			//
-//			center.graphics.beginFill(0x00FF00)
-//			center.graphics.drawCircle(400 - ball.width / 2, stage.stageHeight / 2, 3)
-//			layerContent.addChild(center)
-			//
-//			obj_rotate=new rotateClass(ball, center)
-//			obj_rotate.setPointStart=ball.width / 2
-//			addChild(obj_rotate)
 
 
 		}
