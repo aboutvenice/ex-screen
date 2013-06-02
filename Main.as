@@ -35,10 +35,13 @@ package
 		public var layerText:Sprite=new Sprite()
 		private var layerUI:Sprite=new Sprite()
 		private var layerCam:Sprite=new Sprite()
-		private var butScan:Sprite=new Sprite()
+		private var butShowWeb:Sprite=new Sprite()
 		private var butShowText:Sprite=new Sprite()
 		private var butAddText:Sprite=new Sprite()
-		private var butAddPic:Sprite=new Sprite()
+		private var butAddPhoto:Sprite=new Sprite()
+		private var butSelectPhoto:Sprite=new Sprite()
+		public var text_but:TextField
+
 		//
 		public var obj_accl:acclClass=new acclClass()
 		public var obj_geo:geoClass=new geoClass()
@@ -69,7 +72,9 @@ package
 		//text mode
 		private var tag_mode:String;
 		public var obj_text:textClass
-		//
+		//photo mode
+		public var obj_photo:photoClass
+		
 		public var cam:Camera
 		public var vid:Video
 		public var text_diff:TextField=new TextField()
@@ -101,7 +106,7 @@ package
 			addChild(layerText)
 			addChild(layerUI)
 			stats.scaleX=stats.scaleY=2
-			addChild(stats)
+//			addChild(stats)
 			//--------------------------------------------------
 			// function runs here
 			//--------------------------------------------------
@@ -111,13 +116,17 @@ package
 			//--------------------------------------------------
 			// Listener
 			//--------------------------------------------------			
-			butScan.addEventListener(MouseEvent.CLICK, setQRReader)
+			
 			butShowText.addEventListener(MouseEvent.CLICK, setText)
+			butShowWeb.addEventListener(MouseEvent.CLICK, addWebHandler)
 			butAddText.addEventListener(MouseEvent.CLICK, addTextHandler)
-			butAddPic.addEventListener(MouseEvent.CLICK, addPicHandler)
+			butAddPhoto.addEventListener(MouseEvent.CLICK, addPhotoHandler)
+			butSelectPhoto.addEventListener(MouseEvent.CLICK, addSelectPhotoHandler)
 			stage.addEventListener(Event.ENTER_FRAME, onRun)
 		}
-
+		
+		
+		
 
 		private function setCamera():void
 		{
@@ -189,7 +198,6 @@ package
 				disP*=moveRate //<-網頁移動的距離比率
 				preH=obj_geo.heading
 				//
-//				basicMatrix=frame.transform.matrix3D //設定ball的matrix
 				makeMovement()
 				//	
 				text_diff.text="diifX= " + difX.toFixed(2) + "\n" + "diifY= " + difY.toFixed(2) + "\n" + "diifZ= " + difZ.toFixed(2) + "\n" + "defaultH= " + defaultH + "\n" + "diifH= " + difH.toFixed(2) + "\n" + "disP= " + disP.toFixed(2) + "\n" + "defaultZ= " + defaultZ
@@ -227,9 +235,6 @@ package
 				
 				preZ=obj_accl.rollingZ
 
-//				webView.viewPort=frame.getBounds(this)
-//				tag_loaded=false
-
 			}
 
 		}
@@ -247,12 +252,33 @@ package
 			
 		}
 		
-		
-		
-		protected function addPicHandler(event:MouseEvent):void
+		protected function addWebHandler(event:MouseEvent):void
 		{
+			tag_mode="Web"
+			setQRReader(null)
+
 			
+		}	
+		
+		
+		
+		protected function addPhotoHandler(event:MouseEvent):void
+		{
+			obj_photo=new photoClass(stage)
+			obj_photo.initCamera()
+			tag_mode="PhotoTake"
+
+			defindMode(null)
+
 			
+		}
+		
+		protected function addSelectPhotoHandler(event:MouseEvent):void
+		{
+			obj_photo=new photoClass(stage)
+			obj_photo.initCameraRoll()
+			tag_mode="PhotoSelect"
+			defindMode(null)
 		}
 
 		private function setQRReader(e:MouseEvent):void
@@ -260,8 +286,6 @@ package
 			qr=new QRZBar()
 //			qr = QRZBar.getInstance(); 
 			qr.scan();
-
-			tag_mode="Web"
 
 			//
 //			qr.addEventListener(QRZBarEvent.SCANNED_BAR_CODE, scannedHandler);
@@ -286,34 +310,51 @@ package
 //			trace("vid stage= "+vid.stage)
 
 			var url:String=event.result
-
-				
+			defindMode(url)
+			
+			
+		}
+		
+		private function defindMode(_url):void
+		{
+			
 			if (tag_mode == "Web")
 			{
-				obj_web=new webClass(url,this)
+				obj_web=new webClass(_url,this)
 				layerContent.addChild(obj_web)
-
+				
 				obj_rotate=new rotateClass(obj_web, null)
 				arrray_rotate.push(obj_rotate)
-//				//
-				tag_loaded=true
-	
-
-				
 			}
 			else if (tag_mode == "Text")
 			{
 				//set text Object
-				obj_text=new textClass(url)
+				obj_text=new textClass(_url)
 				obj_rotate=new rotateClass(obj_text, null)
 				arrray_rotate.push(obj_rotate)
 				layerContent.addChild(obj_text)
-				//	
-				tag_loaded=true
+			}
+			else if (tag_mode == "PhotoTake")
+			{
+//				obj_rotate=new rotateClass(obj_photo, null)
+//				arrray_rotate.push(obj_rotate)
+//				layerContent.addChild(obj_photo)
+				
+			}
+			else if (tag_mode == "PhotoSelect")
+			{
+				obj_rotate=new rotateClass(obj_photo, null)
+				arrray_rotate.push(obj_rotate)
+				layerContent.addChild(obj_photo)
+			
+			}
+			
+			//有第一個建立成功了，開始啓動移動模式
+			tag_loaded=true
 
-			}	
+			
 		}
-
+		
 		protected function cancelHandler(event:QRZBarEvent):void
 		{
 //			setCamera()
@@ -388,19 +429,56 @@ package
 		private function setUI():void
 		{
 
-			butScan.graphics.beginFill(0xFF0000)
-			butScan.graphics.drawCircle(50, 500, 50)
 			butShowText.graphics.beginFill(0x00FF00)
-			butShowText.graphics.drawCircle(150, 500, 50)
-			butAddText.graphics.beginFill(0x0000FF)
-			butAddText.graphics.drawCircle(250, 500, 50)
-			butAddPic.graphics.beginFill(0x0000F0)
-			butAddPic.graphics.drawCircle(350, 500, 50)
+			butShowText.graphics.drawCircle(0, 0, 50)
+			butShowText.x=550
+			butShowText.y=500
+			text_but=new TextField()
+			text_but.text="show text"
+			text_but.textColor=0xFFFFFF				
+			butShowText.addChild(text_but)
 			//	
-			layerUI.addChild(butScan)
+			butShowWeb.graphics.beginFill(0xFF0000)
+			butShowWeb.graphics.drawCircle(0, 0, 50)
+			butShowWeb.x=150
+			butShowWeb.y=500	
+			text_but=new TextField()
+			text_but.textColor=0xFFFFFF				
+			text_but.text="web"
+			butShowWeb.addChild(text_but)
+			//	
+			butAddText.graphics.beginFill(0x0000FF)
+			butAddText.graphics.drawCircle(0, 0, 50)
+			butAddText.x=250
+			butAddText.y=500
+			text_but=new TextField()
+			text_but.text="text"
+			text_but.textColor=0xFFFFFF				
+			butAddText.addChild(text_but)
+			//	
+			butAddPhoto.graphics.beginFill(0x0000F0)
+			butAddPhoto.graphics.drawCircle(0, 0, 50)
+			butAddPhoto.x=350
+			butAddPhoto.y=500
+			text_but=new TextField()
+			text_but.text="photo"
+			text_but.textColor=0xFFFFFF				
+			butAddPhoto.addChild(text_but)
+			//	
+			butSelectPhoto.graphics.beginFill(0x0F00F0)
+			butSelectPhoto.graphics.drawCircle(0, 0, 50)
+			butSelectPhoto.x=450
+			butSelectPhoto.y=500
+			text_but=new TextField()
+			text_but.text="select"
+			text_but.textColor=0xFFFFFF				
+			butSelectPhoto.addChild(text_but)
+				//	
+			layerUI.addChild(butShowWeb)
 			layerUI.addChild(butShowText)
 			layerUI.addChild(butAddText)
-			layerUI.addChild(butAddPic)
+			layerUI.addChild(butAddPhoto)
+			layerUI.addChild(butSelectPhoto)
 
 
 		}
