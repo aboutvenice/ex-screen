@@ -1,7 +1,6 @@
 package
 {
 	import flash.display.Sprite;
-	import flash.events.Event;
 	import flash.geom.Matrix3D;
 	import flash.geom.Vector3D;
 	
@@ -25,8 +24,6 @@ package
 		//	
 		public var myMatrix:Matrix3D=new Matrix3D()
 		public var myVector:Vector3D=new Vector3D(0, 0, 0)
-		public var centerMatrix:Matrix3D=new Matrix3D()
-		public var centerVector:Vector3D=new Vector3D(0, 0, 0)
 		//
 		private var point_start:Number=0;
 
@@ -41,19 +38,6 @@ package
 		
 		public function start(valueX:Number,valueY:Number):void
 		{		
-				
-			/*if(stage)
-			{
-				_x=valueX
-				_y=valueY
-				onRun()
-				
-			}else
-			{
-				trace("no stage!")
-			}
-			*/
-			
 			_x=valueX
 			_y=valueY
 			onRun()
@@ -69,11 +53,6 @@ package
 			obj_now.z=distance * Math.cos(radX); // 沿z轴定位盘旋物
 			obj_now.x=distance * Math.sin(radX); // 沿x轴定位盘旋物
 			obj_now.y=distance * Math.sin(radY); // 沿x轴定位盘旋物
-
-			//
-//			centerMatrix=obj_now.transform.matrix3D //拿到ball的位置
-//			obj_center.x=centerMatrix.position.x + obj_now.width / 2 //移到中心點
-//			obj_center.z=centerMatrix.position.z 
 			//	
 			myMatrix=obj_now.transform.matrix3D//拿到ball的位置
 			myVector.x=myMatrix.position.x+(obj_now.width/2)  //將ball的x給vector3D

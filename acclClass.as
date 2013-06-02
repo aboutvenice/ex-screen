@@ -57,8 +57,6 @@ package
 				+ "acceleration Y: " + rollingY.toFixed(2).toString() + "\n" 
 				+ "acceleration Z: " + rollingZ.toFixed(2).toString()
 			
-//			ball.x+=rollingX*100*-1
-//			ball.y+=rollingY*100
 		}
 	}
 }

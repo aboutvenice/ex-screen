@@ -3,7 +3,6 @@ package
 	import com.rancondev.extensions.qrzbar.QRZBar;
 	import com.rancondev.extensions.qrzbar.QRZBarEvent;
 	
-	import flash.display.Shape;
 	import flash.display.Sprite;
 	import flash.display.StageOrientation;
 	import flash.events.Event;
@@ -18,7 +17,6 @@ package
 	
 	import net.hires.debug.Stats;
 	
-
 
 
 	[SWF(width="800", height="600", backgroundColor="#FFFFFF", frameRate="31")]
@@ -106,7 +104,7 @@ package
 			addChild(layerText)
 			addChild(layerUI)
 			stats.scaleX=stats.scaleY=2
-//			addChild(stats)
+			addChild(stats)
 			//--------------------------------------------------
 			// function runs here
 			//--------------------------------------------------
@@ -230,8 +228,11 @@ package
 				{	
 					var nowObj:Object=arrray_rotate[i]
 					nowObj.start(disP, disZ) //call the left-right rotate matrix class's functoin
+					
 
 				}
+				trace("arrray_rotate= "+arrray_rotate.length)
+				trace("----------------------------------------")
 				
 				preZ=obj_accl.rollingZ
 
@@ -312,7 +313,6 @@ package
 			var url:String=event.result
 			defindMode(url)
 			
-			
 		}
 		
 		private function defindMode(_url):void
@@ -336,9 +336,9 @@ package
 			}
 			else if (tag_mode == "PhotoTake")
 			{
-//				obj_rotate=new rotateClass(obj_photo, null)
-//				arrray_rotate.push(obj_rotate)
-//				layerContent.addChild(obj_photo)
+				obj_rotate=new rotateClass(obj_photo, null)
+				arrray_rotate.push(obj_rotate)
+				layerContent.addChild(obj_photo)
 				
 			}
 			else if (tag_mode == "PhotoSelect")
@@ -363,7 +363,6 @@ package
 		}
 
 
-		
 
 
 		//----------------------------------------------------------------------------------------------------
@@ -413,13 +412,13 @@ package
 			timer_default.stop()
 			timer_default.removeEventListener(TimerEvent.TIMER_COMPLETE, setValueHandler)
 			trace("set complete")
-			trace("defaultX= " + defaultX)
-			trace("defaultY= " + defaultY)
-			trace("defaultZ= " + defaultZ)
-			trace("defaultH= " + defaultH)
-			trace("default preH= " + preH)
-			trace("default Heading= " + obj_geo.heading)
-			trace("-------")
+//			trace("defaultX= " + defaultX)
+//			trace("defaultY= " + defaultY)
+//			trace("defaultZ= " + defaultZ)
+//			trace("defaultH= " + defaultH)
+//			trace("default preH= " + preH)
+//			trace("default Heading= " + obj_geo.heading)
+//			trace("-------")
 			tag_start=true
 
 
@@ -479,7 +478,6 @@ package
 			layerUI.addChild(butAddText)
 			layerUI.addChild(butAddPhoto)
 			layerUI.addChild(butSelectPhoto)
-
 
 		}
 

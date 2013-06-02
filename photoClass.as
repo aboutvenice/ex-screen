@@ -93,6 +93,10 @@ package
 			if(tag_mode=="take")
 			{
 				if(CameraRoll.supportsAddBitmapData){
+					
+					addChild(loader)
+					reSizeClass.resize(loader,myParent)
+					//
 					var bitmapData:BitmapData = new BitmapData(loaderInfo.width, loaderInfo.height);
 					bitmapData.draw(loaderInfo.loader);     
 					var c:CameraRoll = new CameraRoll();
@@ -105,7 +109,7 @@ package
 			{
 				addChild(loader)
 				reSizeClass.resize(loader,myParent)
-				trace("photo select")
+				trace("photo select:loaded")
 			
 			}
 		}

@@ -3,11 +3,9 @@
  */
 package {
 	import flash.display.DisplayObject;
-	import flash.display.Sprite;
 	import flash.display.Stage;
-	import flash.events.Event;
-	import flash.geom.Point;
 	import flash.geom.Rectangle;
+	
 	public class reSizeClass  {		
 		public static const CENTER  		:String = "CENTER";
 		public static const CENTER_CROP 	:String = "CENTER_CROP";
