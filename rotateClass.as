@@ -1,13 +1,13 @@
 package
 {
+	import flash.display.MovieClip;
 	import flash.display.Sprite;
-	import flash.geom.Matrix3D;
-	import flash.geom.Vector3D;
 	
 	
-	public class rotateClass extends Sprite
+	public class rotateClass extends MovieClip
 	{
-		public var obj_now:Object
+		public var obj_now:*
+
 		//
 		public var angleX:Number=0; // 初始的环绕角度
 		public var angleY:Number=0; // 初始的环绕角度		
@@ -25,15 +25,18 @@ package
 		private var point_start:Number=0;
 		public var defaultYaw:Number
 		public var defaultRoll:Number
+		public var radius:Number
+		public var ball:Sprite
 
 			
 		
-		public function rotateClass(obj:Object,_yaw:Number,_roll:Number) 
+		public function rotateClass(obj:*,_yaw:Number,_roll:Number) 
 		{
 			
-			obj_now=obj
+			obj_now=obj //as DisplayObjectContainer
 			defaultYaw=_yaw
 			defaultRoll=_roll	
+			radius=Math.PI / 180
 				
 		}
 		
@@ -42,19 +45,17 @@ package
 			
 			_x=valueX
 			_y=valueY
-			onRun()
-			
-		}
-		
-		
-		protected function onRun():void
-		{
-			radX=angleX * (Math.PI / 180);
-			radY=angleY * (Math.PI / 180);
+			//	
+			radX=angleX * radius
+			radY=angleY * radius
 			//
 			obj_now.z=distance * Math.cos(radX); // 沿z轴定位盘旋物
 			obj_now.x=distance * Math.sin(radX); // 沿x轴定位盘旋物
 			obj_now.y=distance * Math.sin(radY); // 沿x轴定位盘旋物
+				
+//			trace("rotateClass.start(valueX, valueY)");
+			
+				
 			//	
 			if ((_x < 0) && (_x > (value_limitAngle * -1)))
 			{ //如果現在的x-之前的x是正數＝滑鼠向右移動

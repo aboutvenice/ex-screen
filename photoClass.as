@@ -83,7 +83,7 @@ package
 				loader.contentLoaderInfo.addEventListener(Event.COMPLETE, loaderCompleted);
 				loader.loadFilePromise(mediaPromise);
 				
-				removeEvent()
+//				removeEvent()
 
 				return;
 			}  
@@ -118,7 +118,7 @@ package
 				trace("loader.height= "+loader.height)
 				loader.scaleX=loader.scaleY=.2
 				addChild(loader)
-//				reSizeClass.resize(loader,myParent)
+				reSizeClass.resize(loader,myParent)
 				trace("photo select:loaded")
 			
 			}
@@ -128,13 +128,13 @@ package
 		protected function mediaError(event:ErrorEvent):void
 		{
 			trace("photoClass.mediaError(event)");
-			removeEvent()
+//			removeEvent()
 		}
 		
 		protected function browseCancelled(event:Event):void
 		{
 			trace("photoClass.browseCancelled(event)");
-			removeEvent()
+//			removeEvent()
 		}
 		
 		private function removeEvent():void
