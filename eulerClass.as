@@ -39,17 +39,13 @@ package
 			
 			
 			//   (Math.round(value/0.01)*0.01)  ---> 取小數位數到0.01位
-//			yaw=(Math.round((event.yaw * 100) / 0.01) * 0.01)
-//			roll=(Math.round((event.roll* 100) / 0.01) * 0.01)
-//			pitch=(Math.round((event.pitch* 100) / 0.01) * 0.01)
-			yaw=event.yaw * 100
-			roll=event.roll* 100
-			pitch=event.pitch* 100
+			yaw=(Math.round((event.yaw * 100) / 0.01) * 0.01)
+			roll=(Math.round((event.roll* 100) / 0.01) * 0.01)
+			pitch=(Math.round((event.pitch* 100) / 0.01) * 0.01)
+//			yaw=event.yaw * 100
+//			roll=event.roll* 100
+//			pitch=event.pitch* 100
 				
-				
-//			trace("yaw= "+yaw)
-//			trace("roll= "+roll)
-			
 			textField.background=true
 			textField.autoSize=TextFieldAutoSize.LEFT
 			textField.defaultTextFormat=new TextFormat(null,30)

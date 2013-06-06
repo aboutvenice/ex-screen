@@ -12,17 +12,15 @@ package
 		public var angleX:Number=0; // 初始的环绕角度
 		public var angleY:Number=0; // 初始的环绕角度		
 		public var speed:Number=8; // 每帧环绕像素数
-		public var distance:Number=800; // 轨道距原点的距离
+		public var distance:Number=1500; // 轨道距原点的距离
 		public var radX:Number; // 角度转换成弧度
 		public var radY:Number;
 		public var _x:Number=0
 		public var _y:Number=0
 
 		private var value_limitAngle:int=120
-		private var value_rotateSpeed:Number=2
 		//	
 		//
-		private var point_start:Number=0;
 		public var defaultYaw:Number
 		public var defaultRoll:Number
 		public var radius:Number
@@ -52,9 +50,6 @@ package
 			obj_now.z=distance * Math.cos(radX); // 沿z轴定位盘旋物
 			obj_now.x=distance * Math.sin(radX); // 沿x轴定位盘旋物
 			obj_now.y=distance * Math.sin(radY); // 沿x轴定位盘旋物
-				
-//			trace("rotateClass.start(valueX, valueY)");
-			
 				
 			//	
 			if ((_x < 0) && (_x > (value_limitAngle * -1)))
@@ -109,15 +104,5 @@ package
 			distance=value
 		}
 		
-		public function set setPointStart(value:Number):void 
-		{
-		
-			point_start=value
-		}
-		
-		public function set setRotateSpeed(value:Number):void 
-		{
-			value_rotateSpeed=value
-		}
 	}
 }

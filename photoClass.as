@@ -146,6 +146,13 @@ package
 			cameraRoll.removeEventListener(ErrorEvent.ERROR, mediaError);
 			
 		}
+		
+		
+		public function removeSelf():void
+		{
+			this.parent.removeChild(this);
+			
+		}
 			
 	
 	}
