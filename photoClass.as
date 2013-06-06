@@ -82,13 +82,20 @@ package
 				loader = new Loader();
 				loader.contentLoaderInfo.addEventListener(Event.COMPLETE, loaderCompleted);
 				loader.loadFilePromise(mediaPromise);
+				
+//				removeEvent()
+
 				return;
 			}  
 
 		}
 		
+				
 		
 		private function loaderCompleted(e:Event):void{
+			
+			loader.contentLoaderInfo.removeEventListener(Event.COMPLETE, loaderCompleted);
+			
 			var loaderInfo:LoaderInfo = e.target as LoaderInfo;
 			if(tag_mode=="take")
 			{
@@ -107,6 +114,9 @@ package
 			
 			}else if(tag_mode=="select")
 			{
+				trace("loader.width= "+loader.width)
+				trace("loader.height= "+loader.height)
+				loader.scaleX=loader.scaleY=.2
 				addChild(loader)
 				reSizeClass.resize(loader,myParent)
 				trace("photo select:loaded")
@@ -118,13 +128,31 @@ package
 		protected function mediaError(event:ErrorEvent):void
 		{
 			trace("photoClass.mediaError(event)");
+//			removeEvent()
 		}
 		
 		protected function browseCancelled(event:Event):void
 		{
 			trace("photoClass.browseCancelled(event)");
+//			removeEvent()
 		}
 		
+		private function removeEvent():void
+		{
+			trace("photoClass.removeEvent()");
+			
+			cameraRoll.removeEventListener(MediaEvent.SELECT,imageUse)
+			cameraRoll.removeEventListener(Event.CANCEL, browseCancelled);
+			cameraRoll.removeEventListener(ErrorEvent.ERROR, mediaError);
+			
+		}
+		
+		
+		public function removeSelf():void
+		{
+			this.parent.removeChild(this);
+			
+		}
 			
 	
 	}

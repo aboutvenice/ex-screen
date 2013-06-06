@@ -27,6 +27,7 @@ package
 			obj_text=new TextField()
 			obj_text.autoSize=TextFieldAutoSize.LEFT
 			obj_text.defaultTextFormat=new TextFormat(null,40)
+			
 			addChild(obj_text)
 			//
 			obj_text.text=_url

@@ -3,11 +3,13 @@ package
 	import com.rancondev.extensions.qrzbar.QRZBar;
 	import com.rancondev.extensions.qrzbar.QRZBarEvent;
 	
+	import flash.display.Bitmap;
+	import flash.display.BitmapData;
 	import flash.display.Sprite;
 	import flash.display.StageOrientation;
+	import flash.display.StageQuality;
 	import flash.events.Event;
 	import flash.events.MouseEvent;
-	import flash.events.TimerEvent;
 	import flash.geom.Rectangle;
 	import flash.media.Camera;
 	import flash.media.Video;
@@ -16,10 +18,10 @@ package
 	import flash.utils.Timer;
 	
 	import net.hires.debug.Stats;
-	
 
 
-	[SWF(width="800", height="600", backgroundColor="#FFFFFF", frameRate="31")]
+
+	[SWF(width="800", height="600", backgroundColor="#FFFFFF", frameRate="30")]
 //	[SWF(width="1632", height="816", backgroundColor="#FFFFFF", frameRate="31")]
 
 
@@ -27,9 +29,9 @@ package
 	public class Main extends Sprite
 	{
 
-		public var stats:Stats=new Stats()	
-		private var qr:QRZBar;
-		private var layerContent:Sprite=new Sprite();
+		public var stats:Stats=new Stats()
+		private var qr:QRZBar=new QRZBar();
+		private  var layerContent:Sprite=new Sprite();
 		public var layerText:Sprite=new Sprite()
 		private var layerUI:Sprite=new Sprite()
 		private var layerCam:Sprite=new Sprite()
@@ -41,7 +43,8 @@ package
 		public var text_but:TextField
 
 		//
-		public var obj_accl:acclClass=new acclClass()
+		public var obj_euler:eulerClass=new eulerClass()
+//		public var obj_accl:acclClass=new acclClass()
 		public var obj_geo:geoClass=new geoClass()
 		public var defaultX:Number=0
 		public var defaultY:Number=0
@@ -59,7 +62,7 @@ package
 		private var moveRate:int=6; //move distance,mapping to stage
 		//
 		public var obj_rotate:rotateClass
-		public var arrray_rotate:Array=new Array()
+		public static var arrray_rotate:Array=new Array()
 		public var preZ:Number=0
 		public var disZ:Number=0
 		//web mode
@@ -72,12 +75,19 @@ package
 		public var obj_text:textClass
 		//photo mode
 		public var obj_photo:photoClass
-		
+		//camera
 		public var cam:Camera
 		public var vid:Video
 		public var text_diff:TextField=new TextField()
+		public var ball:Sprite
+		//
+		public var nowObj:*
+		private var totalObj:int=0;
+		public var nowYaw:Number
+		public var nowRoll:Number
 
-
+		private var diffYaw:Number;
+		private var diffRoll:Number;
 
 		public function Main()
 		{
@@ -93,6 +103,8 @@ package
 
 		public function init(e:Event=null):void
 		{
+			stage.quality=StageQuality.LOW;
+
 			stage.autoOrients=false
 			stage.setOrientation(StageOrientation.ROTATED_RIGHT)
 			//--------------------------------------------------
@@ -100,10 +112,14 @@ package
 			//--------------------------------------------------
 			layerText.visible=true
 			addChild(layerCam)
+//			layerContent.cacheAsBitmap=true
+//			layerContent.cacheAsBitmapMatrix=new Matrix()
+			layerContent.name="layerContent"
 			addChild(layerContent)
 			addChild(layerText)
 			addChild(layerUI)
 			stats.scaleX=stats.scaleY=2
+			stats.x=-90
 			addChild(stats)
 			//--------------------------------------------------
 			// function runs here
@@ -114,22 +130,60 @@ package
 			//--------------------------------------------------
 			// Listener
 			//--------------------------------------------------			
-			
+
 			butShowText.addEventListener(MouseEvent.CLICK, setText)
 			butShowWeb.addEventListener(MouseEvent.CLICK, addWebHandler)
 			butAddText.addEventListener(MouseEvent.CLICK, addTextHandler)
 			butAddPhoto.addEventListener(MouseEvent.CLICK, addPhotoHandler)
 			butSelectPhoto.addEventListener(MouseEvent.CLICK, addSelectPhotoHandler)
 			stage.addEventListener(Event.ENTER_FRAME, onRun)
+			stage.addEventListener(MouseEvent.CLICK, chooseObjHandler)
+
+
+
 		}
-		
-		
-		
+
+
+		protected function onRun(event:Event):void
+		{
+
+			nowYaw=obj_euler.yaw
+			nowRoll=obj_euler.roll
+
+			if (tag_loaded)
+			{
+
+				totalObj=arrray_rotate.length
+
+				for (var i:int=0; i < totalObj; i++)
+				{
+					nowObj=arrray_rotate[i]
+					diffYaw=nowYaw - nowObj.defaultYaw
+					diffRoll=nowRoll - nowObj.defaultRoll
+					//
+					nowObj.start(diffYaw, diffRoll)
+
+				}
+				
+				trace("--------")
+				trace("nowObj.radX= "+nowObj.radX)
+				
+			}
+			
+//			
+			
+			
+//			trace("arrray_rotate= "+arrray_rotate)
+
+
+		}
+
+
 
 		private function setCamera():void
 		{
 
-			while (layerCam.numChildren)
+			/*while (layerCam.numChildren)
 			{
 				layerCam.removeChildAt(0)
 			}
@@ -139,14 +193,37 @@ package
 
 			// Create the camera
 			cam=Camera.getCamera();
-			cam.setMode(camW, camH, stage.frameRate);
+			cam.setMode(camW, camH, 30);
 			cam.setQuality(0, 100)
 
 			// Create a video <--------scene we see
 			vid=new Video(camW, camH);
 			vid.attachCamera(cam);
-//			vid.y=-102
+			layerCam.addChild(vid)*/
+
+
+			while (layerCam.numChildren)
+			{
+				layerCam.removeChildAt(0)
+			}
+
+			var camW:int=stage.stageWidth / 1.6
+			var camH:int=stage.stageHeight / 2
+
+			// Create the camera
+			cam=Camera.getCamera();
+			cam.setMode(camW, camH, 10); //frameRate影響頗大
+			cam.setQuality(0, 10)
+
+
+			// Create a video <--------scene we see
+			vid=new Video(camW, camH);
+			vid.attachCamera(cam);
+			vid.scaleX=vid.scaleY=2
+//			vid.cacheAsBitmap=true
+			vid.x=-90
 			layerCam.addChild(vid)
+			//
 		}
 
 		protected function setText(event:MouseEvent):void
@@ -165,202 +242,186 @@ package
 
 		}
 
-		public function onRun(e:Event):void
-
-		{
-			if (tag_start)
-			{
-				difX=defaultX - obj_accl.rollingX
-				difY=defaultY - obj_accl.rollingY
-				difZ=defaultZ - obj_accl.rollingZ
-				//
-				if (preH <= 90 && obj_geo.heading >= 270)
-				{
-//					trace("H減少，從90經過0，到350")
-					difH=(obj_geo.heading - 360) - preH
-
-				}
-				else if (preH >= 270 && obj_geo.heading <= 90)
-				{
-//					trace("Ｈ增加，從270經過0，到90")
-					difH=(obj_geo.heading + 360) - preH
-
-				}
-				else
-				{
-					//上一個heading的位置值減掉現在的
-					difH=obj_geo.heading - preH
-				}
-
-				disP=(difH * -1) //乘負數，網頁移動位置與視角相反
-				disP*=moveRate //<-網頁移動的距離比率
-				preH=obj_geo.heading
-				//
-				makeMovement()
-				//	
-				text_diff.text="diifX= " + difX.toFixed(2) + "\n" + "diifY= " + difY.toFixed(2) + "\n" + "diifZ= " + difZ.toFixed(2) + "\n" + "defaultH= " + defaultH + "\n" + "diifH= " + difH.toFixed(2) + "\n" + "disP= " + disP.toFixed(2) + "\n" + "defaultZ= " + defaultZ
-
-			}
-
-		}
-
-		public function makeMovement():void
-		{
-
-			if (tag_loaded)
-			{
-
-				if (obj_accl.rollingZ > 0)
-				{
-					disZ=obj_accl.rollingZ - preZ
-
-				}
-				else if (obj_accl.rollingZ < 0)
-				{
-
-					disZ=(Math.abs(obj_accl.rollingZ) - Math.abs(preZ)) * -1
-				}
-
-				difZ*=-1 * moveRate
-				//
-				
-				for (var i:int = 0; i < arrray_rotate.length; i++) 
-				{	
-					var nowObj:Object=arrray_rotate[i]
-					nowObj.start(disP, disZ) //call the left-right rotate matrix class's functoin
-					
-
-				}
-				trace("arrray_rotate= "+arrray_rotate.length)
-				trace("----------------------------------------")
-				
-				preZ=obj_accl.rollingZ
-
-			}
-
-		}
 
 		//--------------------------------------------------
 		//
 		// Handler Function
 		//
 		//--------------------------------------------------
-		protected function addTextHandler(event:MouseEvent):void
-		{
-			tag_mode="Text"
-			//	
-			setQRReader(null)
-			
-		}
-		
+
 		protected function addWebHandler(event:MouseEvent):void
 		{
 			tag_mode="Web"
 			setQRReader(null)
 
-			
-		}	
-		
-		
-		
+		}
+
+		protected function addTextHandler(event:MouseEvent):void
+		{
+
+			tag_mode="Text"
+			//	
+			setQRReader(null)
+
+		}
+
+
+
 		protected function addPhotoHandler(event:MouseEvent):void
 		{
 			obj_photo=new photoClass(stage)
 			obj_photo.initCamera()
 			tag_mode="PhotoTake"
-
+			obj_photo.cacheAsBitmap=true
+			obj_photo.cacheAsBitmapMatrix=obj_photo.transform.concatenatedMatrix
 			defindMode(null)
 
-			
+
 		}
-		
+
 		protected function addSelectPhotoHandler(event:MouseEvent):void
 		{
 			obj_photo=new photoClass(stage)
 			obj_photo.initCameraRoll()
 			tag_mode="PhotoSelect"
+			obj_photo.cacheAsBitmap=true
+			obj_photo.cacheAsBitmapMatrix=obj_photo.transform.concatenatedMatrix
 			defindMode(null)
+
 		}
 
 		private function setQRReader(e:MouseEvent):void
 		{
-			qr=new QRZBar()
-//			qr = QRZBar.getInstance(); 
+//			qr=new QRZBar()
 			qr.scan();
 
-			//
-//			qr.addEventListener(QRZBarEvent.SCANNED_BAR_CODE, scannedHandler);
-//			qr.addEventListener(QRZBarEvent.CANCELED_SCAN, cancelHandler);
 			qr.addEventListener(QRZBarEvent.SCANNED, scannedHandler);
-//			qr.addEventListener(QRZBarEvent.CANCELED_SCAN, scannedHandler);
 
 		}
 
 		protected function scannedHandler(event:QRZBarEvent):void
 		{
 
-//			qr.removeEventListener(QRZBarEvent.SCANNED_BAR_CODE, scannedHandler);
 
 			qr.removeEventListener(QRZBarEvent.SCANNED, scannedHandler);
-//			setCamera()
-
-//			trace("cam= "+cam.activityLevel)
-//			trace("vid= "+vid)
-//			vid.attachCamera(cam)
-//			trace("cam= "+cam.activityLevel)
-//			trace("vid stage= "+vid.stage)
 
 			var url:String=event.result
 			defindMode(url)
-			
+
 		}
-		
+
 		private function defindMode(_url):void
 		{
-			
+
 			if (tag_mode == "Web")
 			{
-				obj_web=new webClass(_url,this)
-				layerContent.addChild(obj_web)
-				
-				obj_rotate=new rotateClass(obj_web, null)
+				obj_web=new webClass(_url, this)
+				obj_rotate=new rotateClass(obj_web, nowYaw, nowRoll)
 				arrray_rotate.push(obj_rotate)
+				//
+				obj_rotate.name=String(arrray_rotate.length-1) //set name
+				obj_web.name=obj_rotate.name	//set name
+				layerContent.addChild(obj_web)
+
 			}
 			else if (tag_mode == "Text")
 			{
 				//set text Object
 				obj_text=new textClass(_url)
-				obj_rotate=new rotateClass(obj_text, null)
+				obj_rotate=new rotateClass(obj_text, nowYaw, nowRoll)
 				arrray_rotate.push(obj_rotate)
+				//
+				obj_rotate.name=String(arrray_rotate.length-1)
+				obj_text.name=obj_rotate.name	
 				layerContent.addChild(obj_text)
 			}
 			else if (tag_mode == "PhotoTake")
 			{
-				obj_rotate=new rotateClass(obj_photo, null)
+				obj_rotate=new rotateClass(obj_photo, nowYaw, nowRoll)
 				arrray_rotate.push(obj_rotate)
+				//	
+				obj_rotate.name=String(arrray_rotate.length-1)
+				obj_photo.name=obj_rotate.name
 				layerContent.addChild(obj_photo)
-				
+
+
 			}
 			else if (tag_mode == "PhotoSelect")
 			{
-				obj_rotate=new rotateClass(obj_photo, null)
+//				trace("Main.defindMode(_url)");
+
+				obj_rotate=new rotateClass(obj_photo, nowYaw, nowRoll)
 				arrray_rotate.push(obj_rotate)
+				//	
+				obj_rotate.name=String(arrray_rotate.length-1)
+				obj_photo.name=obj_rotate.name
 				layerContent.addChild(obj_photo)
-			
+
+
+
+
 			}
-			
+
+
 			//有第一個建立成功了，開始啓動移動模式
 			tag_loaded=true
+//			trace("arrray_rotate= "+arrray_rotate)
 
-			
+
 		}
-		
+
 		protected function cancelHandler(event:QRZBarEvent):void
 		{
 //			setCamera()
 			trace("cancel")
 
 		}
+
+		protected function chooseObjHandler(event:MouseEvent):void
+		{
+
+			var target:String=event.target.parent.parent.name
+
+			if (target=="layerContent")
+			{
+				trace("event.target= " + event.target.parent)
+				var nowObj:*=event.target.parent
+				//	
+				//nowObj.removeSelf()
+				//remove(arrray_rotate,removeCallback,nowObj.name)	
+				var nowObjectIndex:int=	int(nowObj.name)
+				var nowRoate:*=arrray_rotate[nowObjectIndex]	
+
+				var spliced:Array = arrray_rotate.splice(nowObjectIndex,1);
+				nowRoate.radX=nowRoate.radY=0
+				nowRoate.defaultYaw=0
+				nowRoate.defaultRoll=0
+				nowRoate.rotationX=nowRoate.rotationY=0
+				nowRoate.x=nowRoate.y=nowRoate.z=0
+					nowRoate.start(0,0)
+					
+				trace("spliced= "+spliced)
+				trace("arrray_rotate= "+arrray_rotate)
+//				trace("nowRoate.radX= "+nowRoate.radX)
+					
+			}
+
+
+		}
+		
+		protected function remove(list:Array,callback:Function,_name:String):Array {
+			for(var i:int = list.length - 1; i >= 0; i--) {
+				if(callback(list[i])==_name) {
+					list.splice(i,1);
+				}
+			}
+			return list;
+		}
+		
+		protected function removeCallback(item:*):String{
+			return item.name
+		}
+
 
 
 
@@ -374,8 +435,9 @@ package
 
 		private function setAccl():void
 		{
+			obj_euler.textField.x=500
+			layerText.addChild(obj_euler.textField)
 
-			setDefaultValue()
 			//
 			obj_geo.geoTextField.y=150
 			//
@@ -383,46 +445,11 @@ package
 			text_diff.scaleX=text_diff.scaleY=4
 			text_diff.autoSize=TextFieldAutoSize.LEFT
 			//	
-			layerText.addChild(obj_accl.accTextField)
 			layerText.addChild(obj_geo.geoTextField)
 			layerText.addChild(text_diff)
 
 		}
 
-		private function setDefaultValue():void
-		{
-			timer_default=new Timer(3000, 1)
-			timer_default.addEventListener(TimerEvent.TIMER_COMPLETE, setValueHandler)
-			timer_default.start()
-
-		}
-
-		protected function setValueHandler(event:TimerEvent):void
-		{
-			//--------------------------------------------------
-			// 程式啓動後一段時間，才設定初始角度
-			//--------------------------------------------------
-			defaultX=obj_accl.rollingX
-			defaultY=obj_accl.rollingY
-			defaultZ=obj_accl.rollingZ
-			defaultH=obj_geo.heading
-			preH=defaultH
-			preZ=defaultZ
-			//	
-			timer_default.stop()
-			timer_default.removeEventListener(TimerEvent.TIMER_COMPLETE, setValueHandler)
-			trace("set complete")
-//			trace("defaultX= " + defaultX)
-//			trace("defaultY= " + defaultY)
-//			trace("defaultZ= " + defaultZ)
-//			trace("defaultH= " + defaultH)
-//			trace("default preH= " + preH)
-//			trace("default Heading= " + obj_geo.heading)
-//			trace("-------")
-			tag_start=true
-
-
-		}
 
 
 		private function setUI():void
@@ -434,15 +461,15 @@ package
 			butShowText.y=500
 			text_but=new TextField()
 			text_but.text="show text"
-			text_but.textColor=0xFFFFFF				
+			text_but.textColor=0xFFFFFF
 			butShowText.addChild(text_but)
 			//	
 			butShowWeb.graphics.beginFill(0xFF0000)
 			butShowWeb.graphics.drawCircle(0, 0, 50)
 			butShowWeb.x=150
-			butShowWeb.y=500	
+			butShowWeb.y=500
 			text_but=new TextField()
-			text_but.textColor=0xFFFFFF				
+			text_but.textColor=0xFFFFFF
 			text_but.text="web"
 			butShowWeb.addChild(text_but)
 			//	
@@ -452,7 +479,7 @@ package
 			butAddText.y=500
 			text_but=new TextField()
 			text_but.text="text"
-			text_but.textColor=0xFFFFFF				
+			text_but.textColor=0xFFFFFF
 			butAddText.addChild(text_but)
 			//	
 			butAddPhoto.graphics.beginFill(0x0000F0)
@@ -461,7 +488,7 @@ package
 			butAddPhoto.y=500
 			text_but=new TextField()
 			text_but.text="photo"
-			text_but.textColor=0xFFFFFF				
+			text_but.textColor=0xFFFFFF
 			butAddPhoto.addChild(text_but)
 			//	
 			butSelectPhoto.graphics.beginFill(0x0F00F0)
@@ -470,9 +497,14 @@ package
 			butSelectPhoto.y=500
 			text_but=new TextField()
 			text_but.text="select"
-			text_but.textColor=0xFFFFFF				
+			text_but.textColor=0xFFFFFF
 			butSelectPhoto.addChild(text_but)
-				//	
+			//	
+			butShowWeb.cacheAsBitmap=true
+			butShowText.cacheAsBitmap=true
+			butAddText.cacheAsBitmap=true
+			butAddPhoto.cacheAsBitmap=true
+			butSelectPhoto.cacheAsBitmap=true
 			layerUI.addChild(butShowWeb)
 			layerUI.addChild(butShowText)
 			layerUI.addChild(butAddText)
