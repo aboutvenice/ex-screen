@@ -14,6 +14,7 @@ package
 		public var obj_rotate:rotateClass
 
 
+
 		public function textClass(_url:String)
 		{
 			
@@ -31,6 +32,18 @@ package
 			addChild(obj_text)
 			//
 			obj_text.text=_url
+		}
+		
+		public function setRotate(_yaw:Number,_roll:Number):void
+		{
+			obj_rotate=new rotateClass(this,_yaw,_roll)
+			
+		}
+		
+		public function removeSelf():void
+		{
+			this.parent.removeChild(this);
+			
 		}
 	}
 }

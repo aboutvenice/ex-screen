@@ -22,6 +22,9 @@ package
 		public var loader:Loader;
 		private var tag_mode:String;
 		public var myParent:DisplayObject
+		public var obj_rotate:rotateClass
+		
+		public var tag_load:Boolean=false;
 		
 		public function photoClass(_parent:DisplayObject)
 		{
@@ -122,6 +125,10 @@ package
 				trace("photo select:loaded")
 			
 			}
+			
+			trace("photoClass.loaderCompleted(e)");
+			tag_load=true
+			
 		}
 		
 		
@@ -129,12 +136,17 @@ package
 		{
 			trace("photoClass.mediaError(event)");
 //			removeEvent()
+//			removeSelf()
+
 		}
 		
 		protected function browseCancelled(event:Event):void
 		{
 			trace("photoClass.browseCancelled(event)");
+//			removeSelf()
 //			removeEvent()
+			dispatchEvent(new Event("cancel"))
+			
 		}
 		
 		private function removeEvent():void
@@ -144,6 +156,12 @@ package
 			cameraRoll.removeEventListener(MediaEvent.SELECT,imageUse)
 			cameraRoll.removeEventListener(Event.CANCEL, browseCancelled);
 			cameraRoll.removeEventListener(ErrorEvent.ERROR, mediaError);
+			
+		}
+		
+		public function setRotate(_yaw:Number,_roll:Number):void
+		{
+			obj_rotate=new rotateClass(this,_yaw,_roll)
 			
 		}
 		

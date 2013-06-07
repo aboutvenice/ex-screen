@@ -2,21 +2,17 @@ package
 {
 	import com.rancondev.extensions.qrzbar.QRZBar;
 	import com.rancondev.extensions.qrzbar.QRZBarEvent;
-	
-	import flash.display.Bitmap;
-	import flash.display.BitmapData;
+
 	import flash.display.Sprite;
 	import flash.display.StageOrientation;
 	import flash.display.StageQuality;
 	import flash.events.Event;
 	import flash.events.MouseEvent;
-	import flash.geom.Rectangle;
 	import flash.media.Camera;
 	import flash.media.Video;
 	import flash.text.TextField;
 	import flash.text.TextFieldAutoSize;
-	import flash.utils.Timer;
-	
+
 	import net.hires.debug.Stats;
 
 
@@ -25,13 +21,12 @@ package
 //	[SWF(width="1632", height="816", backgroundColor="#FFFFFF", frameRate="31")]
 
 
-
 	public class Main extends Sprite
 	{
 
 		public var stats:Stats=new Stats()
 		private var qr:QRZBar=new QRZBar();
-		private  var layerContent:Sprite=new Sprite();
+		private var layerContent:Sprite=new Sprite();
 		public var layerText:Sprite=new Sprite()
 		private var layerUI:Sprite=new Sprite()
 		private var layerCam:Sprite=new Sprite()
@@ -40,38 +35,26 @@ package
 		private var butAddText:Sprite=new Sprite()
 		private var butAddPhoto:Sprite=new Sprite()
 		private var butSelectPhoto:Sprite=new Sprite()
-		public var text_but:TextField
+//		private var butPin:Sprite=new Sprite()
+		private var butKill:Sprite=new Sprite()
 
-		//
+		public var text_but:TextField
+		//tag
+		private var tag_Text:Boolean=false; //show/hide text
+		private var tag_mode:String;
+		//euler angle
 		public var obj_euler:eulerClass=new eulerClass()
-//		public var obj_accl:acclClass=new acclClass()
-		public var obj_geo:geoClass=new geoClass()
-		public var defaultX:Number=0
-		public var defaultY:Number=0
-		public var defaultZ:Number=0
-		public var defaultH:Number=0
-		public var timer_default:Timer
-		public var tag_start:Boolean=false
-		//
-		public var difX:Number=0
-		public var difY:Number=0
-		public var difZ:Number=0
-		public var difH:Number=0 //the distance from last Heading Value
-		public var preH:Number=0 //pre Heading Value
-		public var disP:Number=0 //the distance website should move 
-		private var moveRate:int=6; //move distance,mapping to stage
+		public var nowYaw:Number
+		public var nowRoll:Number
+		private var diffYaw:Number;
+		private var diffRoll:Number;
 		//
 		public var obj_rotate:rotateClass
-		public static var arrray_rotate:Array=new Array()
-		public var preZ:Number=0
-		public var disZ:Number=0
+		public var array_FrameObj:Array=new Array() //sava all the display frame
 		//web mode
 		public var obj_web:webClass
 		private var tag_loaded:Boolean=false; //web load complete
-		public var moveRect:Rectangle=new Rectangle(0, 0, 800 / 2, 600 / 2)
-		private var tag_Text:Boolean=false; //show/hide text
 		//text mode
-		private var tag_mode:String;
 		public var obj_text:textClass
 		//photo mode
 		public var obj_photo:photoClass
@@ -80,14 +63,15 @@ package
 		public var vid:Video
 		public var text_diff:TextField=new TextField()
 		public var ball:Sprite
-		//
-		public var nowObj:*
-		private var totalObj:int=0;
-		public var nowYaw:Number
-		public var nowRoll:Number
+		//choice 
+		public var nowObj:* //use in onRun()
+		private var totalObj:int=0;//use in onRun()
+		public var nowObjSelect:* //select by click
+		public var nowObjectIndex:int
+		
 
-		private var diffYaw:Number;
-		private var diffRoll:Number;
+
+
 
 		public function Main()
 		{
@@ -138,10 +122,12 @@ package
 			butSelectPhoto.addEventListener(MouseEvent.CLICK, addSelectPhotoHandler)
 			stage.addEventListener(Event.ENTER_FRAME, onRun)
 			stage.addEventListener(MouseEvent.CLICK, chooseObjHandler)
+			butKill.addEventListener(MouseEvent.CLICK, removeFrameObject)
 
 
 
 		}
+
 
 
 		protected function onRun(event:Event):void
@@ -153,27 +139,22 @@ package
 			if (tag_loaded)
 			{
 
-				totalObj=arrray_rotate.length
+
+				totalObj=array_FrameObj.length
 
 				for (var i:int=0; i < totalObj; i++)
 				{
-					nowObj=arrray_rotate[i]
-					diffYaw=nowYaw - nowObj.defaultYaw
-					diffRoll=nowRoll - nowObj.defaultRoll
+					nowObj=array_FrameObj[i]
+					diffYaw=nowYaw - nowObj.obj_rotate.defaultYaw
+					diffRoll=nowRoll - nowObj.obj_rotate.defaultRoll
 					//
-					nowObj.start(diffYaw, diffRoll)
+					nowObj.obj_rotate.start(diffYaw, diffRoll)
 
 				}
-				
-				trace("--------")
-				trace("nowObj.radX= "+nowObj.radX)
-				
+
+				trace("array_FrameObj= "+array_FrameObj)
+
 			}
-			
-//			
-			
-			
-//			trace("arrray_rotate= "+arrray_rotate)
 
 
 		}
@@ -310,66 +291,66 @@ package
 
 		}
 
-		private function defindMode(_url):void
+		public function defindMode(_url):void
 		{
+			trace("Main.defindMode(_url)");
 
 			if (tag_mode == "Web")
 			{
+
 				obj_web=new webClass(_url, this)
-				obj_rotate=new rotateClass(obj_web, nowYaw, nowRoll)
-				arrray_rotate.push(obj_rotate)
-				//
-				obj_rotate.name=String(arrray_rotate.length-1) //set name
-				obj_web.name=obj_rotate.name	//set name
+				obj_web.setRotate(nowYaw, nowRoll)
+				array_FrameObj.push(obj_web)
+				obj_web.name=String(array_FrameObj.length - 1)
 				layerContent.addChild(obj_web)
 
 			}
 			else if (tag_mode == "Text")
 			{
-				//set text Object
+
 				obj_text=new textClass(_url)
-				obj_rotate=new rotateClass(obj_text, nowYaw, nowRoll)
-				arrray_rotate.push(obj_rotate)
-				//
-				obj_rotate.name=String(arrray_rotate.length-1)
-				obj_text.name=obj_rotate.name	
+				obj_text.setRotate(nowYaw, nowRoll)
+				array_FrameObj.push(obj_text)
+				obj_text.name=String(array_FrameObj.length - 1)
 				layerContent.addChild(obj_text)
+
 			}
 			else if (tag_mode == "PhotoTake")
 			{
-				obj_rotate=new rotateClass(obj_photo, nowYaw, nowRoll)
-				arrray_rotate.push(obj_rotate)
-				//	
-				obj_rotate.name=String(arrray_rotate.length-1)
-				obj_photo.name=obj_rotate.name
-				layerContent.addChild(obj_photo)
 
+					obj_photo.setRotate(nowYaw, nowRoll)
+					array_FrameObj.push(obj_photo)
+					obj_photo.name=String(array_FrameObj.length - 1)
+					layerContent.addChild(obj_photo)
+					//監聽來自photoClass的事件,圖片選擇是否取消	
+					obj_photo.addEventListener("browserCancel",onCancel)
 
 			}
 			else if (tag_mode == "PhotoSelect")
 			{
-//				trace("Main.defindMode(_url)");
 
-				obj_rotate=new rotateClass(obj_photo, nowYaw, nowRoll)
-				arrray_rotate.push(obj_rotate)
-				//	
-				obj_rotate.name=String(arrray_rotate.length-1)
-				obj_photo.name=obj_rotate.name
-				layerContent.addChild(obj_photo)
-
-
-
-
+					obj_photo.setRotate(nowYaw, nowRoll)
+					array_FrameObj.push(obj_photo)
+					obj_photo.name=String(array_FrameObj.length - 1)
+					layerContent.addChild(obj_photo)
+						//監聽來自photoClass的事件,圖片選擇是否取消
+					obj_photo.addEventListener("browserCancel",onCancel)
 			}
 
 
 			//有第一個建立成功了，開始啓動移動模式
 			tag_loaded=true
-//			trace("arrray_rotate= "+arrray_rotate)
-
 
 		}
-
+		
+		protected function onCancel(event:Event):void
+		{
+			trace("來自photoClass的事件,圖片選擇是否")
+			remove(array_FrameObj, removeCallback, obj_photo.name)
+			obj_photo.removeSelf()
+			
+		}
+		
 		protected function cancelHandler(event:QRZBarEvent):void
 		{
 //			setCamera()
@@ -380,48 +361,76 @@ package
 		protected function chooseObjHandler(event:MouseEvent):void
 		{
 
-			var target:String=event.target.parent.parent.name
 
-			if (target=="layerContent")
+			if (event.target.name !== "butKill")
 			{
-				trace("event.target= " + event.target.parent)
-				var nowObj:*=event.target.parent
-				//	
-				//nowObj.removeSelf()
-				//remove(arrray_rotate,removeCallback,nowObj.name)	
-				var nowObjectIndex:int=	int(nowObj.name)
-				var nowRoate:*=arrray_rotate[nowObjectIndex]	
+				
+				var target:String=event.target.parent.parent.name
+			}
+			else
+			{
+				trace("event.target= " + event.target)
 
-				var spliced:Array = arrray_rotate.splice(nowObjectIndex,1);
-				nowRoate.radX=nowRoate.radY=0
-				nowRoate.defaultYaw=0
-				nowRoate.defaultRoll=0
-				nowRoate.rotationX=nowRoate.rotationY=0
-				nowRoate.x=nowRoate.y=nowRoate.z=0
-					nowRoate.start(0,0)
-					
-				trace("spliced= "+spliced)
-				trace("arrray_rotate= "+arrray_rotate)
-//				trace("nowRoate.radX= "+nowRoate.radX)
-					
+			}
+
+			if (target == "layerContent")
+			{
+
+				nowObjSelect=event.target.parent
+				nowObjectIndex=int(nowObjSelect.name)
+
+				var nowRotateObj:*=nowObjSelect.obj_rotate
+
+
+				if (nowRotateObj.tag_run == true)
+				{
+					butKill.x=400
+					butKill.y=-300
+					nowObjSelect.addChild(butKill)
+					//	
+					nowRotateObj.tag_run=false
+					nowRotateObj.radX=nowRotateObj.radY=0
+					nowRotateObj.defaultYaw=0
+					nowRotateObj.defaultRoll=0
+					nowRotateObj.rotationX=nowRotateObj.rotationY=0
+					nowRotateObj.x=nowRotateObj.y=nowRotateObj.z=0
+
+				}
+				else
+				{
+					nowObjSelect.removeChild(butKill)
+					nowRotateObj.defaultYaw=nowYaw
+					nowRotateObj.defaultRoll=nowRoll
+					nowRotateObj.tag_run=true
+				}
 			}
 
 
 		}
-		
-		protected function remove(list:Array,callback:Function,_name:String):Array {
-			for(var i:int = list.length - 1; i >= 0; i--) {
-				if(callback(list[i])==_name) {
-					list.splice(i,1);
+
+		protected function removeFrameObject(event:MouseEvent):void
+		{
+			remove(array_FrameObj, removeCallback, nowObjSelect.name)
+			nowObjSelect.removeSelf()
+
+		}
+
+		protected function remove(list:Array, callback:Function, _name:String):Array
+		{
+			for (var i:int=list.length - 1; i >= 0; i--)
+			{
+				if (callback(list[i]) == _name)
+				{
+					list.splice(i, 1);
 				}
 			}
 			return list;
 		}
-		
-		protected function removeCallback(item:*):String{
+
+		protected function removeCallback(item:*):String
+		{
 			return item.name
 		}
-
 
 
 
@@ -439,13 +448,13 @@ package
 			layerText.addChild(obj_euler.textField)
 
 			//
-			obj_geo.geoTextField.y=150
+//			obj_geo.geoTextField.y=150
 			//
 			text_diff.x=450
 			text_diff.scaleX=text_diff.scaleY=4
 			text_diff.autoSize=TextFieldAutoSize.LEFT
 			//	
-			layerText.addChild(obj_geo.geoTextField)
+//			layerText.addChild(obj_geo.geoTextField)
 			layerText.addChild(text_diff)
 
 		}
@@ -499,17 +508,30 @@ package
 			text_but.text="select"
 			text_but.textColor=0xFFFFFF
 			butSelectPhoto.addChild(text_but)
-			//	
+			//	cache
 			butShowWeb.cacheAsBitmap=true
 			butShowText.cacheAsBitmap=true
 			butAddText.cacheAsBitmap=true
 			butAddPhoto.cacheAsBitmap=true
 			butSelectPhoto.cacheAsBitmap=true
+			//addChild
 			layerUI.addChild(butShowWeb)
 			layerUI.addChild(butShowText)
 			layerUI.addChild(butAddText)
 			layerUI.addChild(butAddPhoto)
 			layerUI.addChild(butSelectPhoto)
+			//
+			//choice button
+			butKill.graphics.beginFill(0x0F00F0)
+			butKill.graphics.drawCircle(0, 0, 150)
+			text_but=new TextField()
+			text_but.text="kill"
+			text_but.textColor=0xFFFFFF
+			butKill.addChild(text_but)
+			butKill.cacheAsBitmap=true
+			butKill.name="butKill"
+
+
 
 		}
 
