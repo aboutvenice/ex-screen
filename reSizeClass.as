@@ -13,7 +13,9 @@ package {
 		public static const FIT_START	 	:String = "FIT_START";
 		//public static const FIT_CENTER		:String = "FIT_CENTER";
 		public static const FIT_END		 	:String = "FIT_END";
-		public static const FIT_XY		 	:String = "FIT_XY";		
+		public static const FIT_XY		 	:String = "FIT_XY";	
+		public static var nowScale:Number
+		
 		/**
 		 * 物件的縮放範圍
 		 * @param	pSrcWidth 原始寬
@@ -39,7 +41,9 @@ package {
 					scale = Math.min ( reqW / srcW, reqH / srcH );									
 					break;
 				case CENTER_CROP:
-					scale = Math.max ( reqW / srcW, reqH / srcH );							
+					scale = Math.max ( reqW / srcW, reqH / srcH );
+					nowScale=scale
+					trace("scale= "+scale)
 					break;
 			}			
 			srcW  *= scale;
@@ -87,6 +91,12 @@ package {
 			pDisplay.y = rect.y;
 			pDisplay.width = rect.width;
 			pDisplay.height = rect.height;
-		}		
+		}	
+		
+		public static function get getScale():Number 
+		{
+			
+			return nowScale;
+		}
 	}	
 }

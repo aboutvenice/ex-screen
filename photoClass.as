@@ -23,8 +23,8 @@ package
 		private var tag_mode:String;
 		public var myParent:DisplayObject
 		public var obj_rotate:rotateClass
-		
 		public var tag_load:Boolean=false;
+		public var nowScale:Number
 		
 		public function photoClass(_parent:DisplayObject)
 		{
@@ -78,6 +78,7 @@ package
 		
 		protected function imageUse(event:MediaEvent):void
 		{
+			trace("photoClass.imageUse(event)");
 			
 			
 			var mediaPromise:MediaPromise = event.data;
@@ -85,8 +86,6 @@ package
 				loader = new Loader();
 				loader.contentLoaderInfo.addEventListener(Event.COMPLETE, loaderCompleted);
 				loader.loadFilePromise(mediaPromise);
-				
-//				removeEvent()
 
 				return;
 			}  
@@ -112,6 +111,7 @@ package
 					var c:CameraRoll = new CameraRoll();
 					c.addBitmapData(bitmapData);
 					trace("photo save")
+					dispatchEvent(new Event("photoSave"))
 				}
 			
 			
@@ -119,13 +119,15 @@ package
 			{
 				trace("loader.width= "+loader.width)
 				trace("loader.height= "+loader.height)
-				loader.scaleX=loader.scaleY=.2
+				loader.scaleX=loader.scaleY=.3
 				addChild(loader)
-				reSizeClass.resize(loader,myParent)
+//				reSizeClass.resize(loader,myParent)
 				trace("photo select:loaded")
 			
 			}
 			
+			nowScale=reSizeClass.getScale
+			trace("nowScale= "+nowScale)	
 			trace("photoClass.loaderCompleted(e)");
 			tag_load=true
 			
@@ -135,17 +137,17 @@ package
 		protected function mediaError(event:ErrorEvent):void
 		{
 			trace("photoClass.mediaError(event)");
-//			removeEvent()
-//			removeSelf()
+			//通知Main,這個class被取消了
+			dispatchEvent(new Event("cancel"))
+
 
 		}
 		
 		protected function browseCancelled(event:Event):void
 		{
 			trace("photoClass.browseCancelled(event)");
-//			removeSelf()
-//			removeEvent()
-			dispatchEvent(new Event("cancel"))
+			//通知Main,這個class被取消了
+			dispatchEvent(new Event("browserCancel"))
 			
 		}
 		

@@ -283,7 +283,9 @@
 
 
 <extensions>
-        <extensionID>com.rancondev.extensions.qrzbar.QRZBar</extensionID>
+        
     <extensionID>de.ketzler.eulergyroscope</extensionID>
+    
+    <extensionID>com.rancondev.extensions.qrzbar.QRZBar</extensionID>
     </extensions>
 </application>

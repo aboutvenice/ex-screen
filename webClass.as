@@ -16,6 +16,7 @@ package
 		public var myParent:DisplayObject
 		public var obj_rotate:rotateClass
 
+		private var tag_load:Boolean=false
 		
 		public function webClass(_url:String,_parent:DisplayObject)
 		{
@@ -27,26 +28,37 @@ package
 			webView.addEventListener(Event.COMPLETE, loadFinishHandler)
 		}
 		
-		protected function loadFinishHandler(event:Event):void
+		public function loadFinishHandler(event:Event):void
 		{
 			
 			frame=new Sprite()
 			frame.x=frame.y=frame.z=0
 			frame.graphics.beginFill(0xFFFFFF, .5)
-			frame.graphics.drawRect(0, 0, 600, 400)
+			frame.graphics.drawRect(0, 0, 800, 800)
 			addChild(frame)
 			//
 			webView.viewPort=frame.getBounds(myParent)
+				tag_load=true
 
 				
-			this.addEventListener(Event.ENTER_FRAME,onRun)
+//			this.addEventListener(Event.ENTER_FRAME,onRun)
 			
 		}
 		
-		protected function onRun(event:Event):void
+//		protected function onRun(event:Event):void
+		public function onRun():void
 		{
-			webView.viewPort=frame.getBounds(myParent)
+			if (tag_load) 
+			{
+				trace("webClass.onRun()");
+				trace("webView.viewPort= "+webView.viewPort)
+				trace("frame= "+frame)
+				trace("myParent= "+myParent)
+				
+				webView.viewPort=frame.getBounds(myParent)
 
+			}
+		
 			
 		}
 		

@@ -8,10 +8,16 @@ package
 	import flash.display.StageQuality;
 	import flash.events.Event;
 	import flash.events.MouseEvent;
+	import flash.events.TransformGestureEvent;
+	import flash.geom.Matrix;
+	import flash.geom.Point;
 	import flash.media.Camera;
 	import flash.media.Video;
 	import flash.text.TextField;
 	import flash.text.TextFieldAutoSize;
+	import flash.text.TextFormat;
+	import flash.ui.Multitouch;
+	import flash.ui.MultitouchInputMode;
 
 	import net.hires.debug.Stats;
 
@@ -65,10 +71,11 @@ package
 		public var ball:Sprite
 		//choice 
 		public var nowObj:* //use in onRun()
-		private var totalObj:int=0;//use in onRun()
+		private var totalObj:int=0; //use in onRun()
 		public var nowObjSelect:* //select by click
 		public var nowObjectIndex:int
-		
+
+		private var ptScalePoint:Point;
 
 
 
@@ -88,7 +95,7 @@ package
 		public function init(e:Event=null):void
 		{
 			stage.quality=StageQuality.LOW;
-
+			Multitouch.inputMode=MultitouchInputMode.GESTURE;
 			stage.autoOrients=false
 			stage.setOrientation(StageOrientation.ROTATED_RIGHT)
 			//--------------------------------------------------
@@ -150,9 +157,16 @@ package
 					//
 					nowObj.obj_rotate.start(diffYaw, diffRoll)
 
+					if (nowObj == "[object webClass]")
+					{
+//						nowObj.onRun()
+
+					}
+
 				}
 
-				trace("array_FrameObj= "+array_FrameObj)
+//				trace("array_FrameObj= "+array_FrameObj)
+				text_diff.text="Obj number= " + array_FrameObj.length
 
 			}
 
@@ -204,6 +218,7 @@ package
 //			vid.cacheAsBitmap=true
 			vid.x=-90
 			layerCam.addChild(vid)
+			trace("layerCam.numChildren= " + layerCam.numChildren)
 			//
 		}
 
@@ -289,6 +304,8 @@ package
 			var url:String=event.result
 			defindMode(url)
 
+			setCamera()
+
 		}
 
 		public function defindMode(_url):void
@@ -318,23 +335,25 @@ package
 			else if (tag_mode == "PhotoTake")
 			{
 
-					obj_photo.setRotate(nowYaw, nowRoll)
-					array_FrameObj.push(obj_photo)
-					obj_photo.name=String(array_FrameObj.length - 1)
-					layerContent.addChild(obj_photo)
-					//監聽來自photoClass的事件,圖片選擇是否取消	
-					obj_photo.addEventListener("browserCancel",onCancel)
+				obj_photo.setRotate(nowYaw, nowRoll)
+				array_FrameObj.push(obj_photo)
+				obj_photo.name=String(array_FrameObj.length - 1)
+				layerContent.addChild(obj_photo)
+				//監聽來自photoClass的事件,圖片選擇是否取消	
+				obj_photo.addEventListener("browserCancel", onCancel)
+				obj_photo.addEventListener("photoSave", onSave)
 
 			}
 			else if (tag_mode == "PhotoSelect")
 			{
 
-					obj_photo.setRotate(nowYaw, nowRoll)
-					array_FrameObj.push(obj_photo)
-					obj_photo.name=String(array_FrameObj.length - 1)
-					layerContent.addChild(obj_photo)
-						//監聽來自photoClass的事件,圖片選擇是否取消
-					obj_photo.addEventListener("browserCancel",onCancel)
+				obj_photo.setRotate(nowYaw, nowRoll)
+				array_FrameObj.push(obj_photo)
+				obj_photo.name=String(array_FrameObj.length - 1)
+				layerContent.addChild(obj_photo)
+				//監聽來自photoClass的事件,圖片選擇是否取消
+				obj_photo.addEventListener("browserCancel", onCancel)
+
 			}
 
 
@@ -342,19 +361,50 @@ package
 			tag_loaded=true
 
 		}
-		
+
+		protected function onSave(event:Event):void
+		{
+			trace("來自photoClass的事件,圖片照完了")
+			setCamera()
+
+
+		}
+
+
 		protected function onCancel(event:Event):void
 		{
-			trace("來自photoClass的事件,圖片選擇是否")
+			trace("來自photoClass的事件,圖片選擇被取消")
 			remove(array_FrameObj, removeCallback, obj_photo.name)
 			obj_photo.removeSelf()
-			
+			setCamera()
+
+
 		}
-		
+
 		protected function cancelHandler(event:QRZBarEvent):void
 		{
-//			setCamera()
+			setCamera()
 			trace("cancel")
+
+		}
+
+		protected function zoomHandler(event:TransformGestureEvent):void
+		{
+			//call the function and pass in the object to be rotated, the amount to scale X and Y (sx, sy), and the point object we created
+//			scaleFromCenter(event.target, 2, 2, ptScalePoint);
+
+
+			trace("-------------")
+			trace("之前X= " + event.target.scaleX)
+			trace("之前Y= " + event.target.scaleY)
+			trace("縮放Ｘ= "+(event.scaleX+event.scaleY)/2)
+			//
+			event.target.scaleX*=(event.scaleX + event.scaleY) / 2
+			event.target.scaleY*=(event.scaleX + event.scaleY) / 2
+			//
+			trace("之後X= " + event.target.scaleX)
+			trace("之後Y= " + event.target.scaleY)
+
 
 		}
 
@@ -364,7 +414,7 @@ package
 
 			if (event.target.name !== "butKill")
 			{
-				
+
 				var target:String=event.target.parent.parent.name
 			}
 			else
@@ -378,6 +428,10 @@ package
 
 				nowObjSelect=event.target.parent
 				nowObjectIndex=int(nowObjSelect.name)
+				nowObjSelect.addEventListener(TransformGestureEvent.GESTURE_ZOOM, zoomHandler)
+//				stage.addEventListener(TransformGestureEvent.GESTURE_ZOOM,zoomHandler)
+				ptScalePoint=new Point(nowObjSelect.x + nowObjSelect.width / 2, nowObjSelect.y + nowObjSelect.height / 2);
+
 
 				var nowRotateObj:*=nowObjSelect.obj_rotate
 
@@ -398,6 +452,7 @@ package
 				}
 				else
 				{
+					nowObjSelect.removeEventListener(TransformGestureEvent.GESTURE_ZOOM, zoomHandler)
 					nowObjSelect.removeChild(butKill)
 					nowRotateObj.defaultYaw=nowYaw
 					nowRotateObj.defaultRoll=nowRoll
@@ -406,6 +461,17 @@ package
 			}
 
 
+		}
+
+		private function scaleFromCenter(ob:*, sx:Number, sy:Number, ptScalePoint:Point):void
+		{
+			var m:Matrix=ob.transform.matrix;
+			m.tx-=ptScalePoint.x;
+			m.ty-=ptScalePoint.y;
+			m.scale(sx, sy);
+			m.tx+=ptScalePoint.x;
+			m.ty+=ptScalePoint.y;
+			ob.transform.matrix=m;
 		}
 
 		protected function removeFrameObject(event:MouseEvent):void
@@ -446,15 +512,13 @@ package
 		{
 			obj_euler.textField.x=500
 			layerText.addChild(obj_euler.textField)
-
 			//
-//			obj_geo.geoTextField.y=150
-			//
-			text_diff.x=450
-			text_diff.scaleX=text_diff.scaleY=4
+			text_diff.x=500
+			text_diff.y=100
+			text_diff.background=true
+			text_diff.defaultTextFormat=new TextFormat(null, 30)
 			text_diff.autoSize=TextFieldAutoSize.LEFT
 			//	
-//			layerText.addChild(obj_geo.geoTextField)
 			layerText.addChild(text_diff)
 
 		}
