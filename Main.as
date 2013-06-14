@@ -35,14 +35,19 @@ package
 		private var layerContent:Sprite=new Sprite();
 		public var layerText:Sprite=new Sprite()
 		private var layerUI:Sprite=new Sprite()
+		private var layerUISide:Sprite=new Sprite()
 		private var layerCam:Sprite=new Sprite()
 		private var butShowWeb:Sprite=new Sprite()
 		private var butShowText:Sprite=new Sprite()
 		private var butAddText:Sprite=new Sprite()
 		private var butAddPhoto:Sprite=new Sprite()
 		private var butSelectPhoto:Sprite=new Sprite()
+		private var butClearAll:Sprite=new Sprite()
 //		private var butPin:Sprite=new Sprite()
 		private var butKill:Sprite=new Sprite()
+		private var butDrog:Sprite=new Sprite()
+		private var butAlphaUp:Sprite=new Sprite()
+		private var butAlphaDown:Sprite=new Sprite()
 
 		public var text_but:TextField
 		//tag
@@ -73,7 +78,8 @@ package
 		public var nowObj:* //use in onRun()
 		private var totalObj:int=0; //use in onRun()
 		public var nowObjSelect:* //select by click
-		public var nowObjectIndex:int
+		public var preObjSelect:*
+//		public var nowObjectIndex:int
 
 		private var ptScalePoint:Point;
 
@@ -109,8 +115,11 @@ package
 			addChild(layerContent)
 			addChild(layerText)
 			addChild(layerUI)
+			layerUISide.visible=false
+			addChild(layerUISide)
 			stats.scaleX=stats.scaleY=2
 			stats.x=-90
+			stats.visible=false
 			addChild(stats)
 			//--------------------------------------------------
 			// function runs here
@@ -127,13 +136,19 @@ package
 			butAddText.addEventListener(MouseEvent.CLICK, addTextHandler)
 			butAddPhoto.addEventListener(MouseEvent.CLICK, addPhotoHandler)
 			butSelectPhoto.addEventListener(MouseEvent.CLICK, addSelectPhotoHandler)
+			butClearAll.addEventListener(MouseEvent.CLICK, clearAllHandler)
 			stage.addEventListener(Event.ENTER_FRAME, onRun)
 			stage.addEventListener(MouseEvent.CLICK, chooseObjHandler)
 			butKill.addEventListener(MouseEvent.CLICK, removeFrameObject)
+			butDrog.addEventListener(MouseEvent.CLICK, drogFrame)
+			butAlphaUp.addEventListener(MouseEvent.CLICK, alphaUp)
+			butAlphaDown.addEventListener(MouseEvent.CLICK, alphaDown)
+
 
 
 
 		}
+
 
 
 
@@ -228,11 +243,13 @@ package
 			{
 				tag_Text=true
 				layerText.visible=true
+				stats.visible=true
 			}
 			else
 			{
 				tag_Text=false
 				layerText.visible=false
+				stats.visible=false
 
 			}
 
@@ -283,6 +300,17 @@ package
 			obj_photo.cacheAsBitmap=true
 			obj_photo.cacheAsBitmapMatrix=obj_photo.transform.concatenatedMatrix
 			defindMode(null)
+
+		}
+
+		protected function clearAllHandler(event:MouseEvent):void
+		{
+			while (layerContent.numChildren > 0)
+			{
+				layerContent.removeChildAt(0)
+				array_FrameObj.pop()
+
+			}
 
 		}
 
@@ -350,6 +378,7 @@ package
 				obj_photo.setRotate(nowYaw, nowRoll)
 				array_FrameObj.push(obj_photo)
 				obj_photo.name=String(array_FrameObj.length - 1)
+//				obj_photo.alpha=.6
 				layerContent.addChild(obj_photo)
 				//監聽來自photoClass的事件,圖片選擇是否取消
 				obj_photo.addEventListener("browserCancel", onCancel)
@@ -397,7 +426,7 @@ package
 			trace("-------------")
 			trace("之前X= " + event.target.scaleX)
 			trace("之前Y= " + event.target.scaleY)
-			trace("縮放Ｘ= "+(event.scaleX+event.scaleY)/2)
+			trace("縮放Ｘ= " + (event.scaleX + event.scaleY) / 2)
 			//
 			event.target.scaleX*=(event.scaleX + event.scaleY) / 2
 			event.target.scaleY*=(event.scaleX + event.scaleY) / 2
@@ -426,38 +455,26 @@ package
 			if (target == "layerContent")
 			{
 
-				nowObjSelect=event.target.parent
-				nowObjectIndex=int(nowObjSelect.name)
+				nowObjSelect=event.target.parent //photoClass
+
+//				nowObjectIndex=int(nowObjSelect.name)
 				nowObjSelect.addEventListener(TransformGestureEvent.GESTURE_ZOOM, zoomHandler)
-//				stage.addEventListener(TransformGestureEvent.GESTURE_ZOOM,zoomHandler)
-				ptScalePoint=new Point(nowObjSelect.x + nowObjSelect.width / 2, nowObjSelect.y + nowObjSelect.height / 2);
+//				ptScalePoint=new Point(nowObjSelect.x + nowObjSelect.width / 2, nowObjSelect.y + nowObjSelect.height / 2);
 
-
-				var nowRotateObj:*=nowObjSelect.obj_rotate
-
-
-				if (nowRotateObj.tag_run == true)
+				//如果按的是同一個frame,原本看的到的UI就關掉
+				if ((layerUISide.visible)&&(preObjSelect==nowObjSelect))
 				{
-					butKill.x=400
-					butKill.y=-300
-					nowObjSelect.addChild(butKill)
-					//	
-					nowRotateObj.tag_run=false
-					nowRotateObj.radX=nowRotateObj.radY=0
-					nowRotateObj.defaultYaw=0
-					nowRotateObj.defaultRoll=0
-					nowRotateObj.rotationX=nowRotateObj.rotationY=0
-					nowRotateObj.x=nowRotateObj.y=nowRotateObj.z=0
-
+					layerUISide.visible=false
 				}
 				else
 				{
-					nowObjSelect.removeEventListener(TransformGestureEvent.GESTURE_ZOOM, zoomHandler)
-					nowObjSelect.removeChild(butKill)
-					nowRotateObj.defaultYaw=nowYaw
-					nowRotateObj.defaultRoll=nowRoll
-					nowRotateObj.tag_run=true
+					layerUISide.visible=true
+
 				}
+				
+				preObjSelect=nowObjSelect
+
+
 			}
 
 
@@ -474,8 +491,55 @@ package
 			ob.transform.matrix=m;
 		}
 
+		protected function drogFrame(event:MouseEvent):void
+		{
+			
+			var nowRotateObj:*=nowObjSelect.obj_rotate //photo.rotateClass
+
+			if (nowRotateObj.tag_run == true)
+			{
+				butDrog.scaleX=butDrog.scaleY=.8
+
+				nowObjSelect.rotationX=nowObjSelect.rotationY=0 //frmae的翻轉角度回復水平
+				nowObjSelect.x=nowObjSelect.y=0 //frame回復位置
+				nowRotateObj.tag_run=false
+
+
+			}
+			else
+			{
+				nowObjSelect.removeEventListener(TransformGestureEvent.GESTURE_ZOOM, zoomHandler)
+				//
+				butDrog.scaleX=butDrog.scaleY=1
+				//
+				nowRotateObj.defaultYaw=nowYaw
+				nowRotateObj.defaultRoll=nowRoll
+				nowRotateObj.tag_run=true
+			}
+
+
+		}
+
+
+
+		protected function alphaDown(event:MouseEvent):void
+		{
+			nowObjSelect.alpha-=.1
+			trace("nowObjSelect.alpha= " + nowObjSelect.alpha)
+
+
+		}
+
+		protected function alphaUp(event:MouseEvent):void
+		{
+			nowObjSelect.alpha+=.1
+			trace("nowObjSelect.alpha= " + nowObjSelect.alpha)
+
+		}
+
 		protected function removeFrameObject(event:MouseEvent):void
 		{
+			layerUISide.visible=false
 			remove(array_FrameObj, removeCallback, nowObjSelect.name)
 			nowObjSelect.removeSelf()
 
@@ -527,20 +591,14 @@ package
 
 		private function setUI():void
 		{
+			var posX:int=50
+			var posY:int=550
+			var dis:int=120
 
-			butShowText.graphics.beginFill(0x00FF00)
-			butShowText.graphics.drawCircle(0, 0, 50)
-			butShowText.x=550
-			butShowText.y=500
-			text_but=new TextField()
-			text_but.text="show text"
-			text_but.textColor=0xFFFFFF
-			butShowText.addChild(text_but)
-			//	
 			butShowWeb.graphics.beginFill(0xFF0000)
 			butShowWeb.graphics.drawCircle(0, 0, 50)
-			butShowWeb.x=150
-			butShowWeb.y=500
+			butShowWeb.x=posX
+			butShowWeb.y=posY
 			text_but=new TextField()
 			text_but.textColor=0xFFFFFF
 			text_but.text="web"
@@ -548,8 +606,8 @@ package
 			//	
 			butAddText.graphics.beginFill(0x0000FF)
 			butAddText.graphics.drawCircle(0, 0, 50)
-			butAddText.x=250
-			butAddText.y=500
+			butAddText.x=butShowWeb.x + dis
+			butAddText.y=posY
 			text_but=new TextField()
 			text_but.text="text"
 			text_but.textColor=0xFFFFFF
@@ -557,8 +615,8 @@ package
 			//	
 			butAddPhoto.graphics.beginFill(0x0000F0)
 			butAddPhoto.graphics.drawCircle(0, 0, 50)
-			butAddPhoto.x=350
-			butAddPhoto.y=500
+			butAddPhoto.x=butAddText.x + dis
+			butAddPhoto.y=posY
 			text_but=new TextField()
 			text_but.text="photo"
 			text_but.textColor=0xFFFFFF
@@ -566,34 +624,93 @@ package
 			//	
 			butSelectPhoto.graphics.beginFill(0x0F00F0)
 			butSelectPhoto.graphics.drawCircle(0, 0, 50)
-			butSelectPhoto.x=450
-			butSelectPhoto.y=500
+			butSelectPhoto.x=butAddPhoto.x + dis
+			butSelectPhoto.y=posY
 			text_but=new TextField()
 			text_but.text="select"
 			text_but.textColor=0xFFFFFF
 			butSelectPhoto.addChild(text_but)
+			//
+			butShowText.graphics.beginFill(0x00FF00)
+			butShowText.graphics.drawCircle(0, 0, 50)
+			butShowText.x=butSelectPhoto.x + dis
+			butShowText.y=posY
+			text_but=new TextField()
+			text_but.text="show text"
+			text_but.textColor=0xFFFFFF
+			butShowText.addChild(text_but)
+			//
+			butClearAll.graphics.beginFill(0xF0FF00)
+			butClearAll.graphics.drawCircle(0, 0, 50)
+			butClearAll.x=butShowText.x + dis
+			butClearAll.y=posY
+			text_but=new TextField()
+			text_but.text="clear all"
+			text_but.textColor=0xFFFFFF
+			butClearAll.addChild(text_but)
 			//	cache
 			butShowWeb.cacheAsBitmap=true
-			butShowText.cacheAsBitmap=true
 			butAddText.cacheAsBitmap=true
 			butAddPhoto.cacheAsBitmap=true
 			butSelectPhoto.cacheAsBitmap=true
+			butShowText.cacheAsBitmap=true
+			butClearAll.cacheAsBitmap=true
 			//addChild
 			layerUI.addChild(butShowWeb)
-			layerUI.addChild(butShowText)
 			layerUI.addChild(butAddText)
 			layerUI.addChild(butAddPhoto)
 			layerUI.addChild(butSelectPhoto)
+			layerUI.addChild(butShowText)
+			layerUI.addChild(butClearAll)
 			//
 			//choice button
 			butKill.graphics.beginFill(0x0F00F0)
-			butKill.graphics.drawCircle(0, 0, 150)
+			butKill.graphics.drawCircle(0, 0, 50)
 			text_but=new TextField()
 			text_but.text="kill"
 			text_but.textColor=0xFFFFFF
 			butKill.addChild(text_but)
 			butKill.cacheAsBitmap=true
 			butKill.name="butKill"
+			//	
+			butDrog.graphics.beginFill(0x0F00F0)
+			butDrog.graphics.drawCircle(0, 0, 50)
+			text_but=new TextField()
+			text_but.text="Drog"
+			text_but.textColor=0xFFFFFF
+			butDrog.addChild(text_but)
+			butDrog.cacheAsBitmap=true
+			butDrog.name="butDrog"
+			//
+			butAlphaUp.graphics.beginFill(0x0F00F0)
+			butAlphaUp.graphics.drawCircle(0, 0, 50)
+			text_but=new TextField()
+			text_but.text="+"
+			text_but.textColor=0xFFFF00
+			butAlphaUp.addChild(text_but)
+			butAlphaUp.cacheAsBitmap=true
+			butAlphaUp.name="butAlphaUp"
+
+			butAlphaDown.graphics.beginFill(0x0F00F0)
+			butAlphaDown.graphics.drawCircle(0, 0, 50)
+			text_but=new TextField()
+			text_but.text="-"
+			text_but.textColor=0xFFFF00
+			butAlphaDown.addChild(text_but)
+			butAlphaDown.cacheAsBitmap=true
+			butAlphaDown.name="butAlphaDown"
+			//
+			butKill.x=butDrog.x=butAlphaUp.x=butAlphaDown.x=800
+			butKill.y=50
+			butDrog.y=butKill.y + dis
+			butAlphaUp.y=butDrog.y + dis
+			butAlphaDown.y=butAlphaUp.y + dis
+
+			layerUISide.addChild(butKill)
+			layerUISide.addChild(butDrog)
+			layerUISide.addChild(butAlphaUp)
+			layerUISide.addChild(butAlphaDown)
+
 
 
 

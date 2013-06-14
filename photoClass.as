@@ -127,8 +127,8 @@ package
 			}
 			
 			nowScale=reSizeClass.getScale
-			trace("nowScale= "+nowScale)	
-			trace("photoClass.loaderCompleted(e)");
+//			trace("nowScale= "+nowScale)	
+//			trace("photoClass.loaderCompleted(e)");
 			tag_load=true
 			
 		}
