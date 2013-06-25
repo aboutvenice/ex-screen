@@ -185,6 +185,7 @@ package
 			}
 			else if (tag_browserMode == "hud")
 			{
+				freezRollYaw()
 				releaseRollYaw()
 				//
 				stage.removeEventListener(MouseEvent.MOUSE_MOVE, worldMoveHandler)
@@ -373,13 +374,15 @@ package
 				trace("saveRX= "+nowObj.obj_rotate.saveRX.toFixed(3))
 				trace("saveRY= "+nowObj.obj_rotate.saveRY.toFixed(3))
 				//
-				diffYaw=nowObj.obj_rotate.saveRX - nowObj.obj_rotate.defaultYaw
-				diffRoll=nowObj.obj_rotate.saveRY - nowObj.obj_rotate.defaultRoll
+//				diffYaw=nowObj.obj_rotate.saveRX - nowObj.obj_rotate.defaultYaw
+//				diffRoll=nowObj.obj_rotate.saveRY - nowObj.obj_rotate.defaultRoll
+				diffYaw=nowYaw - nowObj.obj_rotate.defaultYaw
+				diffRoll=nowRoll - nowObj.obj_rotate.defaultRoll
 				//	
 				trace("diffYaw= "+diffYaw.toFixed(3))
 				trace("diffRoll= "+diffRoll.toFixed(3))
 				//	
-				nowObj.obj_rotate.start(diffYaw * -1, diffRoll)
+				nowObj.obj_rotate.start(diffYaw, diffRoll)
 
 			}
 
