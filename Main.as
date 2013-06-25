@@ -2,7 +2,7 @@ package
 {
 	import com.rancondev.extensions.qrzbar.QRZBar;
 	import com.rancondev.extensions.qrzbar.QRZBarEvent;
-	
+
 	import flash.display.Sprite;
 	import flash.display.StageOrientation;
 	import flash.display.StageQuality;
@@ -18,7 +18,7 @@ package
 	import flash.text.TextFormat;
 	import flash.ui.Multitouch;
 	import flash.ui.MultitouchInputMode;
-	
+
 	import net.hires.debug.Stats;
 
 
@@ -85,11 +85,18 @@ package
 
 		private var ptScalePoint:Point;
 		//browserMode
-		public var tag_hudMode:Boolean=true
-		private var tag_worldMode:Boolean=false;
+		public var tag_hudMode:Boolean //=true
+		private var tag_worldMode:Boolean //=false;
 		private var tag_browserMode:String="hud";
-		public var movementYaw:Number=1;
-		public var movementRoll:Number=1;
+		//
+		private var tag_startMove:Boolean=true; //是第一次點嗎
+		private var firstX:Number=0; //手剛點下去的第一個位置
+		private var firstY:Number=0;
+		private var mouseRatoinX:Number=stage.stageWidth / 10 //手指移動的門檻值
+		private var mouseRatoinY:Number=stage.stageHeight / 10
+		private var diffX:Number=0; 
+		private var diffY:Number=0;
+
 
 
 
@@ -158,40 +165,54 @@ package
 
 		}
 
-
-
 		private function browserMode():void
 		{
 			if (tag_browserMode == "world")
 			{
 				stage.removeEventListener(Event.ENTER_FRAME, onRun)
 				stage.addEventListener(MouseEvent.MOUSE_MOVE, worldMoveHandler)
+				stage.addEventListener(MouseEvent.MOUSE_UP, resetFirstXHandler)
 
 				freezRollYaw()
+				//
+				butHudMode.scaleX=butHudMode.scaleY=1
+				butWorldMode.scaleX=butWorldMode.scaleY=.5
+				//
+				tag_hudMode=false
+				tag_worldMode=true
+
 
 			}
 			else if (tag_browserMode == "hud")
 			{
 				releaseRollYaw()
-
+				//
+				stage.removeEventListener(MouseEvent.MOUSE_MOVE, worldMoveHandler)
 				stage.addEventListener(Event.ENTER_FRAME, onRun)
+				//	
+				butHudMode.scaleX=butHudMode.scaleY=.5
+				butWorldMode.scaleX=butWorldMode.scaleY=1
+				tag_worldMode=false
+				tag_hudMode=true
 
 
 
 			}
 			else if (tag_browserMode == "object")
 			{
-				stage.removeEventListener(Event.ENTER_FRAME, onRun)
-				freezRollYaw()
 
+				stage.removeEventListener(MouseEvent.MOUSE_MOVE, worldMoveHandler)
+				stage.removeEventListener(Event.ENTER_FRAME, onRun)
+				//	
+				freezRollYaw()
+				//
+				butHudMode.scaleX=butHudMode.scaleY=1
+				butWorldMode.scaleX=butWorldMode.scaleY=1
 
 			}
 
 			trace("tag_browserMode= " + tag_browserMode)
 		}
-
-
-
 
 		protected function worldModeHandler(event:MouseEvent):void
 		{
@@ -199,47 +220,45 @@ package
 			{
 				tag_worldMode=false
 				tag_browserMode="object"
-				butWorldMode.scaleX=butWorldMode.scaleY=1
+					//				butWorldMode.scaleX=butWorldMode.scaleY=1
 			}
 			else if ((!tag_worldMode) && (!tag_hudMode))
 			{
 				tag_worldMode=true
 				tag_browserMode="world"
-				butWorldMode.scaleX=butWorldMode.scaleY=.5
+					//				butWorldMode.scaleX=butWorldMode.scaleY=.5
 
 			}
 			else if ((!tag_worldMode) && (tag_hudMode))
 			{
 				tag_worldMode=true
 				tag_browserMode="world"
-				butWorldMode.scaleX=butWorldMode.scaleY=.5
+				//				butWorldMode.scaleX=butWorldMode.scaleY=.5
 				//	
-				butHudMode.scaleX=butHudMode.scaleY=1 //另一邊變大
+				//				butHudMode.scaleX=butHudMode.scaleY=1 //另一邊變大
 				tag_hudMode=false
-
-
 			}
 
 			browserMode()
-
-
 		}
 
+
 		protected function hudModeHandler(event:MouseEvent):void
+
 		{
 			if (tag_hudMode)
 			{
 
 				tag_hudMode=false //變成還沒按
 				tag_browserMode="object"
-				butHudMode.scaleX=butHudMode.scaleY=1
+//				butHudMode.scaleX=butHudMode.scaleY=1
 			}
 			else if ((!tag_hudMode) && (!tag_worldMode))
 			{
 				//如果還沒按
 				tag_hudMode=true //變成按
 				tag_browserMode="hud"
-				butHudMode.scaleX=butHudMode.scaleY=.5
+//				butHudMode.scaleX=butHudMode.scaleY=.5
 
 			}
 			else if ((!tag_hudMode) && (tag_worldMode))
@@ -248,7 +267,7 @@ package
 				tag_browserMode="hud"
 				butHudMode.scaleX=butHudMode.scaleY=.5
 				//
-				butWorldMode.scaleX=butWorldMode.scaleY=1
+//				butWorldMode.scaleX=butWorldMode.scaleY=1
 				tag_worldMode=false
 
 			}
@@ -257,9 +276,82 @@ package
 
 		}
 
+		protected function resetFirstXHandler(event:MouseEvent):void
+		{
+			tag_startMove=true //手放掉，下一次又是第一次點
+			firstX=0
+			firstY=0
+//			diffX=0
+//			diffY=0
+
+		}
+
 		protected function worldMoveHandler(event:MouseEvent):void
 		{
-			// TODO Auto-generated method stub
+			if (event.target == stage)
+			{
+				var _x:Number=event.target.mouseX
+				var _y:Number=event.target.mouseY
+
+
+				if (tag_startMove)
+				{
+					//如果是第一次點
+					tag_startMove=false
+					firstX=_x
+					firstY=_y
+				}
+				trace("firstX= " + firstX)
+				trace("_x= " + _x)
+//				trace("firstY= " + firstY)
+//				trace("_y= " + _y)
+
+				var distanceX:Number=_x - firstX
+				var distanceY:Number=_y - firstY
+
+				trace("distanceX= " + distanceX)
+				trace("mouseRatoinX= " + mouseRatoinX)
+//				trace("distanceY= " + distanceY)
+//				trace("mouseRatoinY= " + mouseRatoinY)
+
+				if (distanceX > mouseRatoinX)
+				{
+					//如果手指移動距離大過門檻值
+					diffX+=(distanceX / mouseRatoinX)/4
+					trace("diffX= " + diffX)
+
+				}
+				else if (distanceX < mouseRatoinX*-1)
+				{
+					diffX+=(distanceX / mouseRatoinX)/4
+					trace("diffX= " + diffX)
+				}
+
+				if (distanceY > mouseRatoinY)
+				{
+					diffY+=(distanceY / mouseRatoinY)/4
+					trace("diffY= "+diffY)
+
+				}
+				else if (distanceY < mouseRatoinY*-1)
+				{
+					diffY+=(distanceY / mouseRatoinY)/4
+					trace("diffY= "+diffY)
+
+				}
+				trace("----------------")
+
+				totalObj=array_FrameObj.length
+
+				for (var i:int=0; i < totalObj; i++)
+				{
+					nowObj=array_FrameObj[i]
+					nowObj.obj_rotate.start(diffX, diffY)
+
+				}
+			}
+
+
 
 		}
 
@@ -271,7 +363,7 @@ package
 			for (var i:int=0; i < totalObj; i++)
 			{
 				nowObj=array_FrameObj[i]
-				nowObj.obj_rotate.saveRX=nowObj.obj_rotate._x
+				nowObj.obj_rotate.saveRX=nowObj.obj_rotate._x //將現在的位移量(位置)存起來(上次傳入的diffYaw)
 				nowObj.obj_rotate.saveRY=nowObj.obj_rotate._y
 
 			}
@@ -284,14 +376,14 @@ package
 
 			nowYaw=obj_euler.yaw
 			nowRoll=obj_euler.roll
-			
+
 			for (var i:int=0; i < totalObj; i++)
 			{
 				nowObj=array_FrameObj[i]
-				nowObj.obj_rotate.defaultYaw=nowYaw-nowObj.obj_rotate.saveRX
-				nowObj.obj_rotate.defaultRoll=nowRoll-nowObj.obj_rotate.saveRY
-				
-				
+				nowObj.obj_rotate.defaultYaw=nowYaw - nowObj.obj_rotate.saveRX //把現在euler的位置減上次的位置，等於新的起始位置
+				nowObj.obj_rotate.defaultRoll=nowRoll - nowObj.obj_rotate.saveRY
+
+
 			}
 
 
@@ -313,11 +405,11 @@ package
 				for (var i:int=0; i < totalObj; i++)
 				{
 					nowObj=array_FrameObj[i]
-						
+
 					diffYaw=nowYaw - nowObj.obj_rotate.defaultYaw
 					diffRoll=nowRoll - nowObj.obj_rotate.defaultRoll
-					
-					
+
+
 					//
 					nowObj.obj_rotate.start(diffYaw, diffRoll)
 
@@ -327,14 +419,19 @@ package
 
 					}
 
+					text_diff.text="diff= " + diffYaw + "\n"
+					"Obj number= " + array_FrameObj.length + "\n"
+
+
+
 				}
 
 //				trace("array_FrameObj= "+array_FrameObj)
-				text_diff.text="Obj number= " + array_FrameObj.length
+//				text_diff.Text("Obj number= " + array_FrameObj.length+"\n")
 
 			}
 
-			
+
 
 		}
 
@@ -601,7 +698,7 @@ package
 		{
 
 
-			if (event.target.name !== "butKill")
+			if ((event.target.name !== "butKill") && (event.target != stage))
 			{
 
 				var target:String=event.target.parent.parent.name
