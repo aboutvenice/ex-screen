@@ -94,7 +94,7 @@ package
 		private var firstY:Number=0;
 		private var mouseRatoinX:Number=stage.stageWidth / 10 //手指移動的門檻值
 		private var mouseRatoinY:Number=stage.stageHeight / 10
-		private var diffX:Number=0; 
+		private var diffX:Number=0;
 		private var diffY:Number=0;
 
 
@@ -276,85 +276,6 @@ package
 
 		}
 
-		protected function resetFirstXHandler(event:MouseEvent):void
-		{
-			tag_startMove=true //手放掉，下一次又是第一次點
-			firstX=0
-			firstY=0
-//			diffX=0
-//			diffY=0
-
-		}
-
-		protected function worldMoveHandler(event:MouseEvent):void
-		{
-			if (event.target == stage)
-			{
-				var _x:Number=event.target.mouseX
-				var _y:Number=event.target.mouseY
-
-
-				if (tag_startMove)
-				{
-					//如果是第一次點
-					tag_startMove=false
-					firstX=_x
-					firstY=_y
-				}
-				trace("firstX= " + firstX)
-				trace("_x= " + _x)
-//				trace("firstY= " + firstY)
-//				trace("_y= " + _y)
-
-				var distanceX:Number=_x - firstX
-				var distanceY:Number=_y - firstY
-
-				trace("distanceX= " + distanceX)
-				trace("mouseRatoinX= " + mouseRatoinX)
-//				trace("distanceY= " + distanceY)
-//				trace("mouseRatoinY= " + mouseRatoinY)
-
-				if (distanceX > mouseRatoinX)
-				{
-					//如果手指移動距離大過門檻值
-					diffX+=(distanceX / mouseRatoinX)/4
-					trace("diffX= " + diffX)
-
-				}
-				else if (distanceX < mouseRatoinX*-1)
-				{
-					diffX+=(distanceX / mouseRatoinX)/4
-					trace("diffX= " + diffX)
-				}
-
-				if (distanceY > mouseRatoinY)
-				{
-					diffY+=(distanceY / mouseRatoinY)/4
-					trace("diffY= "+diffY)
-
-				}
-				else if (distanceY < mouseRatoinY*-1)
-				{
-					diffY+=(distanceY / mouseRatoinY)/4
-					trace("diffY= "+diffY)
-
-				}
-				trace("----------------")
-
-				totalObj=array_FrameObj.length
-
-				for (var i:int=0; i < totalObj; i++)
-				{
-					nowObj=array_FrameObj[i]
-					nowObj.obj_rotate.start(diffX, diffY)
-
-				}
-			}
-
-
-
-		}
-
 		private function freezRollYaw():void
 		{
 			nowYaw=obj_euler.yaw
@@ -365,6 +286,10 @@ package
 				nowObj=array_FrameObj[i]
 				nowObj.obj_rotate.saveRX=nowObj.obj_rotate._x //將現在的位移量(位置)存起來(上次傳入的diffYaw)
 				nowObj.obj_rotate.saveRY=nowObj.obj_rotate._y
+
+				trace("Main.freezRollYaw()");
+				trace("nowObj.obj_rotate.defaultYaw= " + nowObj.obj_rotate.defaultYaw.toFixed(3))
+				trace("nowObj.obj_rotate.defaultRoll= " + nowObj.obj_rotate.defaultRoll.toFixed(3))
 
 			}
 
@@ -388,6 +313,88 @@ package
 
 
 		}
+
+
+		protected function worldMoveHandler(event:MouseEvent):void
+		{
+			if (event.target == stage)
+			{
+				trace("----------------")
+
+
+				var _x:Number=event.target.mouseX
+				var _y:Number=event.target.mouseY
+
+				if (tag_startMove)
+				{
+					//如果是第一次點
+					tag_startMove=false
+					firstX=_x
+					firstY=_y
+				}
+//				trace("firstX= " + firstX)
+//				trace("_x= " + _x)
+//				trace("firstY= " + firstY)
+//				trace("_y= " + _y)
+
+				var distanceX:Number=_x - firstX
+				var distanceY:Number=_y - firstY
+
+//				trace("distanceX= " + distanceX)
+//				trace("mouseRatoinX= " + mouseRatoinX)
+//				trace("distanceY= " + distanceY)
+//				trace("mouseRatoinY= " + mouseRatoinY)
+
+				diffX=distanceX / 200
+				diffY=distanceY / 200
+				trace("diffX= " + diffX)
+				trace("diffY= " + diffY)
+				worldRun()
+
+
+			}
+
+		}
+
+		private function worldRun():void
+		{
+			totalObj=array_FrameObj.length
+
+			for (var i:int=0; i < totalObj; i++)
+			{
+				nowObj=array_FrameObj[i]
+				nowObj.obj_rotate.defaultYaw+=diffX // effected by diffX
+				nowObj.obj_rotate.defaultRoll+=diffY // effected by diffX
+
+				trace("第 "+i+" 個物件 ----------")
+				trace("defaultYaw= " + nowObj.obj_rotate.defaultYaw.toFixed(3))
+				trace("defaultRoll= " + nowObj.obj_rotate.defaultRoll.toFixed(3))
+				//		
+				trace("saveRX= "+nowObj.obj_rotate.saveRX.toFixed(3))
+				trace("saveRY= "+nowObj.obj_rotate.saveRY.toFixed(3))
+				//
+				diffYaw=nowObj.obj_rotate.saveRX - nowObj.obj_rotate.defaultYaw
+				diffRoll=nowObj.obj_rotate.saveRY - nowObj.obj_rotate.defaultRoll
+				//	
+				trace("diffYaw= "+diffYaw.toFixed(3))
+				trace("diffRoll= "+diffRoll.toFixed(3))
+				//	
+				nowObj.obj_rotate.start(diffYaw * -1, diffRoll)
+
+			}
+
+		}
+
+		protected function resetFirstXHandler(event:MouseEvent):void
+		{
+			tag_startMove=true //手放掉，下一次又是第一次點
+			firstX=0
+			firstY=0
+			diffX=0
+			diffY=0
+		}
+
+
 
 
 		protected function onRun(event:Event):void
@@ -419,8 +426,9 @@ package
 
 					}
 
-					text_diff.text="diff= " + diffYaw + "\n"
-					"Obj number= " + array_FrameObj.length + "\n"
+					text_diff.text="diffYaw= " + diffYaw.toFixed(3) 
+						+ "\n" + "diffRoll= " + diffRoll.toFixed(3) 
+						+ "\n" + "Obj number= " + array_FrameObj.length + "\n"
 
 
 
@@ -705,7 +713,7 @@ package
 			}
 			else
 			{
-				trace("event.target= " + event.target)
+//				trace("event.target= " + event.target)
 
 			}
 

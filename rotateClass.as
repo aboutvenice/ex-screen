@@ -21,13 +21,13 @@ package
 		private var value_limitAngle:int=120
 		//	
 		//
-		public var defaultYaw:Number
-		public var defaultRoll:Number
-		public var radius:Number
+		public var defaultYaw:Number=0
+		public var defaultRoll:Number=0
+		public var radius:Number=0
 		public var ball:Sprite
 		public var tag_run:Boolean=true
-		public var saveRX:Number;
-		public var saveRY:Number;
+		public var saveRX:Number=0;
+		public var saveRY:Number=0;
 
 
 
