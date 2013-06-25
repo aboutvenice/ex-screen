@@ -26,6 +26,8 @@ package
 		public var radius:Number
 		public var ball:Sprite
 		public var tag_run:Boolean=true
+		public var saveRX:Number;
+		public var saveRY:Number;
 
 
 
@@ -43,6 +45,8 @@ package
 		{
 			if (tag_run)
 			{
+				
+				
 				_x=valueX
 				_y=valueY
 				//	

@@ -2,7 +2,7 @@ package
 {
 	import com.rancondev.extensions.qrzbar.QRZBar;
 	import com.rancondev.extensions.qrzbar.QRZBarEvent;
-
+	
 	import flash.display.Sprite;
 	import flash.display.StageOrientation;
 	import flash.display.StageQuality;
@@ -18,7 +18,7 @@ package
 	import flash.text.TextFormat;
 	import flash.ui.Multitouch;
 	import flash.ui.MultitouchInputMode;
-
+	
 	import net.hires.debug.Stats;
 
 
@@ -43,6 +43,8 @@ package
 		private var butAddPhoto:Sprite=new Sprite()
 		private var butSelectPhoto:Sprite=new Sprite()
 		private var butClearAll:Sprite=new Sprite()
+		private var butWorldMode:Sprite=new Sprite()
+		private var butHudMode:Sprite=new Sprite()
 //		private var butPin:Sprite=new Sprite()
 		private var butKill:Sprite=new Sprite()
 		private var butDrog:Sprite=new Sprite()
@@ -82,6 +84,13 @@ package
 //		public var nowObjectIndex:int
 
 		private var ptScalePoint:Point;
+		//browserMode
+		public var tag_hudMode:Boolean=true
+		private var tag_worldMode:Boolean=false;
+		private var tag_browserMode:String="hud";
+		public var movementYaw:Number=1;
+		public var movementRoll:Number=1;
+
 
 
 
@@ -127,6 +136,7 @@ package
 			setAccl()
 			setUI()
 			setCamera()
+			browserMode()
 			//--------------------------------------------------
 			// Listener
 			//--------------------------------------------------			
@@ -137,7 +147,8 @@ package
 			butAddPhoto.addEventListener(MouseEvent.CLICK, addPhotoHandler)
 			butSelectPhoto.addEventListener(MouseEvent.CLICK, addSelectPhotoHandler)
 			butClearAll.addEventListener(MouseEvent.CLICK, clearAllHandler)
-			stage.addEventListener(Event.ENTER_FRAME, onRun)
+			butHudMode.addEventListener(MouseEvent.CLICK, hudModeHandler)
+			butWorldMode.addEventListener(MouseEvent.CLICK, worldModeHandler)
 			stage.addEventListener(MouseEvent.CLICK, chooseObjHandler)
 			butKill.addEventListener(MouseEvent.CLICK, removeFrameObject)
 			butDrog.addEventListener(MouseEvent.CLICK, drogFrame)
@@ -145,11 +156,146 @@ package
 			butAlphaDown.addEventListener(MouseEvent.CLICK, alphaDown)
 
 
+		}
+
+
+
+		private function browserMode():void
+		{
+			if (tag_browserMode == "world")
+			{
+				stage.removeEventListener(Event.ENTER_FRAME, onRun)
+				stage.addEventListener(MouseEvent.MOUSE_MOVE, worldMoveHandler)
+
+				freezRollYaw()
+
+			}
+			else if (tag_browserMode == "hud")
+			{
+				releaseRollYaw()
+
+				stage.addEventListener(Event.ENTER_FRAME, onRun)
+
+
+
+			}
+			else if (tag_browserMode == "object")
+			{
+				stage.removeEventListener(Event.ENTER_FRAME, onRun)
+				freezRollYaw()
+
+
+			}
+
+			trace("tag_browserMode= " + tag_browserMode)
+		}
+
+
+
+
+		protected function worldModeHandler(event:MouseEvent):void
+		{
+			if (tag_worldMode)
+			{
+				tag_worldMode=false
+				tag_browserMode="object"
+				butWorldMode.scaleX=butWorldMode.scaleY=1
+			}
+			else if ((!tag_worldMode) && (!tag_hudMode))
+			{
+				tag_worldMode=true
+				tag_browserMode="world"
+				butWorldMode.scaleX=butWorldMode.scaleY=.5
+
+			}
+			else if ((!tag_worldMode) && (tag_hudMode))
+			{
+				tag_worldMode=true
+				tag_browserMode="world"
+				butWorldMode.scaleX=butWorldMode.scaleY=.5
+				//	
+				butHudMode.scaleX=butHudMode.scaleY=1 //另一邊變大
+				tag_hudMode=false
+
+
+			}
+
+			browserMode()
 
 
 		}
 
+		protected function hudModeHandler(event:MouseEvent):void
+		{
+			if (tag_hudMode)
+			{
 
+				tag_hudMode=false //變成還沒按
+				tag_browserMode="object"
+				butHudMode.scaleX=butHudMode.scaleY=1
+			}
+			else if ((!tag_hudMode) && (!tag_worldMode))
+			{
+				//如果還沒按
+				tag_hudMode=true //變成按
+				tag_browserMode="hud"
+				butHudMode.scaleX=butHudMode.scaleY=.5
+
+			}
+			else if ((!tag_hudMode) && (tag_worldMode))
+			{
+				tag_hudMode=true //變成按
+				tag_browserMode="hud"
+				butHudMode.scaleX=butHudMode.scaleY=.5
+				//
+				butWorldMode.scaleX=butWorldMode.scaleY=1
+				tag_worldMode=false
+
+			}
+
+			browserMode()
+
+		}
+
+		protected function worldMoveHandler(event:MouseEvent):void
+		{
+			// TODO Auto-generated method stub
+
+		}
+
+		private function freezRollYaw():void
+		{
+			nowYaw=obj_euler.yaw
+			nowRoll=obj_euler.roll
+
+			for (var i:int=0; i < totalObj; i++)
+			{
+				nowObj=array_FrameObj[i]
+				nowObj.obj_rotate.saveRX=nowObj.obj_rotate._x
+				nowObj.obj_rotate.saveRY=nowObj.obj_rotate._y
+
+			}
+
+		}
+
+		public function releaseRollYaw():void
+		{
+
+
+			nowYaw=obj_euler.yaw
+			nowRoll=obj_euler.roll
+			
+			for (var i:int=0; i < totalObj; i++)
+			{
+				nowObj=array_FrameObj[i]
+				nowObj.obj_rotate.defaultYaw=nowYaw-nowObj.obj_rotate.saveRX
+				nowObj.obj_rotate.defaultRoll=nowRoll-nowObj.obj_rotate.saveRY
+				
+				
+			}
+
+
+		}
 
 
 		protected function onRun(event:Event):void
@@ -167,14 +313,17 @@ package
 				for (var i:int=0; i < totalObj; i++)
 				{
 					nowObj=array_FrameObj[i]
+						
 					diffYaw=nowYaw - nowObj.obj_rotate.defaultYaw
 					diffRoll=nowRoll - nowObj.obj_rotate.defaultRoll
+					
+					
 					//
 					nowObj.obj_rotate.start(diffYaw, diffRoll)
 
 					if (nowObj == "[object webClass]")
 					{
-//						nowObj.onRun()
+						nowObj.onRun()
 
 					}
 
@@ -185,6 +334,7 @@ package
 
 			}
 
+			
 
 		}
 
@@ -232,7 +382,7 @@ package
 			vid.scaleX=vid.scaleY=2
 //			vid.cacheAsBitmap=true
 			vid.x=-90
-			layerCam.addChild(vid)
+//			layerCam.addChild(vid) 
 			trace("layerCam.numChildren= " + layerCam.numChildren)
 			//
 		}
@@ -317,8 +467,15 @@ package
 		private function setQRReader(e:MouseEvent):void
 		{
 //			qr=new QRZBar()
-			qr.scan();
+			//
+//			obj_web=new webClass("https://www.facebook.com/", this)
+//			obj_web.setRotate(nowYaw, nowRoll)
+//			array_FrameObj.push(obj_web)
+//			obj_web.name=String(array_FrameObj.length - 1)
+//			layerContent.addChild(obj_web)
+//			tag_loaded=true
 
+			qr.scan();
 			qr.addEventListener(QRZBarEvent.SCANNED, scannedHandler);
 
 		}
@@ -348,6 +505,9 @@ package
 				array_FrameObj.push(obj_web)
 				obj_web.name=String(array_FrameObj.length - 1)
 				layerContent.addChild(obj_web)
+
+//				var obj_web2=new web2Class("https://www.facebook.com/",stage)
+//				layerContent.addChild(obj_web2)
 
 			}
 			else if (tag_mode == "Text")
@@ -437,7 +597,7 @@ package
 
 		}
 
-		protected function chooseObjHandler(event:MouseEvent):void
+		public function chooseObjHandler(event:MouseEvent):void
 		{
 
 
@@ -462,7 +622,7 @@ package
 //				ptScalePoint=new Point(nowObjSelect.x + nowObjSelect.width / 2, nowObjSelect.y + nowObjSelect.height / 2);
 
 				//如果按的是同一個frame,原本看的到的UI就關掉
-				if ((layerUISide.visible)&&(preObjSelect==nowObjSelect))
+				if ((layerUISide.visible) && (preObjSelect == nowObjSelect))
 				{
 					layerUISide.visible=false
 				}
@@ -471,7 +631,7 @@ package
 					layerUISide.visible=true
 
 				}
-				
+
 				preObjSelect=nowObjSelect
 
 
@@ -493,7 +653,7 @@ package
 
 		protected function drogFrame(event:MouseEvent):void
 		{
-			
+
 			var nowRotateObj:*=nowObjSelect.obj_rotate //photo.rotateClass
 
 			if (nowRotateObj.tag_run == true)
@@ -515,6 +675,8 @@ package
 				nowRotateObj.defaultYaw=nowYaw
 				nowRotateObj.defaultRoll=nowRoll
 				nowRotateObj.tag_run=true
+				layerUISide.visible=false //關掉UI
+
 			}
 
 
@@ -593,7 +755,7 @@ package
 		{
 			var posX:int=50
 			var posY:int=550
-			var dis:int=120
+			var dis:int=100
 
 			butShowWeb.graphics.beginFill(0xFF0000)
 			butShowWeb.graphics.drawCircle(0, 0, 50)
@@ -648,6 +810,25 @@ package
 			text_but.text="clear all"
 			text_but.textColor=0xFFFFFF
 			butClearAll.addChild(text_but)
+			//
+			butWorldMode.graphics.beginFill(0xF0FF0F)
+			butWorldMode.graphics.drawCircle(0, 0, 50)
+			butWorldMode.x=butClearAll.x + dis
+			butWorldMode.y=posY
+			text_but=new TextField()
+			text_but.text="worldMode"
+			text_but.textColor=0xFFFFFF
+			butWorldMode.addChild(text_but)
+			//
+			butHudMode.graphics.beginFill(0xF0FF0F)
+			butHudMode.graphics.drawCircle(0, 0, 50)
+			butHudMode.x=butWorldMode.x + dis
+			butHudMode.y=posY
+			butHudMode.scaleX=butHudMode.scaleY=.5
+			text_but=new TextField()
+			text_but.text="hudMode"
+			text_but.textColor=0xFFFFFF
+			butHudMode.addChild(text_but)
 			//	cache
 			butShowWeb.cacheAsBitmap=true
 			butAddText.cacheAsBitmap=true
@@ -662,6 +843,8 @@ package
 			layerUI.addChild(butSelectPhoto)
 			layerUI.addChild(butShowText)
 			layerUI.addChild(butClearAll)
+			layerUI.addChild(butWorldMode)
+			layerUI.addChild(butHudMode)
 			//
 			//choice button
 			butKill.graphics.beginFill(0x0F00F0)
