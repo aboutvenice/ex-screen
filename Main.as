@@ -2,7 +2,7 @@ package
 {
 	import com.rancondev.extensions.qrzbar.QRZBar;
 	import com.rancondev.extensions.qrzbar.QRZBarEvent;
-
+	
 	import flash.display.Sprite;
 	import flash.display.StageOrientation;
 	import flash.display.StageQuality;
@@ -13,12 +13,13 @@ package
 	import flash.geom.Point;
 	import flash.media.Camera;
 	import flash.media.Video;
+	import flash.text.ReturnKeyLabel;
 	import flash.text.TextField;
 	import flash.text.TextFieldAutoSize;
 	import flash.text.TextFormat;
 	import flash.ui.Multitouch;
 	import flash.ui.MultitouchInputMode;
-
+	
 	import net.hires.debug.Stats;
 
 
@@ -50,6 +51,9 @@ package
 		private var butDrog:Sprite=new Sprite()
 		private var butAlphaUp:Sprite=new Sprite()
 		private var butAlphaDown:Sprite=new Sprite()
+		private var bk_tag:Sprite=new Sprite()
+
+			
 
 		public var text_but:TextField
 		//tag
@@ -96,6 +100,7 @@ package
 		private var mouseRatoinY:Number=stage.stageHeight / 10
 		private var diffX:Number=0;
 		private var diffY:Number=0;
+		private var nt:NativeText;
 
 
 
@@ -318,8 +323,8 @@ package
 
 		protected function worldMoveHandler(event:MouseEvent):void
 		{
-			if (event.target == stage)
-			{
+//			if (event.target == stage)
+//			{
 				trace("----------------")
 
 
@@ -346,14 +351,14 @@ package
 //				trace("distanceY= " + distanceY)
 //				trace("mouseRatoinY= " + mouseRatoinY)
 
-				diffX=distanceX / 200
+				diffX=distanceX / 200*-1 //*-1 讓world模式的移動方向正確
 				diffY=distanceY / 200
 				trace("diffX= " + diffX)
 				trace("diffY= " + diffY)
 				worldRun()
 
 
-			}
+//			}
 
 		}
 
@@ -370,9 +375,9 @@ package
 				trace("第 "+i+" 個物件 ----------")
 				trace("defaultYaw= " + nowObj.obj_rotate.defaultYaw.toFixed(3))
 				trace("defaultRoll= " + nowObj.obj_rotate.defaultRoll.toFixed(3))
-				//		
-				trace("saveRX= "+nowObj.obj_rotate.saveRX.toFixed(3))
-				trace("saveRY= "+nowObj.obj_rotate.saveRY.toFixed(3))
+//				//		
+//				trace("saveRX= "+nowObj.obj_rotate.saveRX.toFixed(3))
+//				trace("saveRY= "+nowObj.obj_rotate.saveRY.toFixed(3))
 				//
 //				diffYaw=nowObj.obj_rotate.saveRX - nowObj.obj_rotate.defaultYaw
 //				diffRoll=nowObj.obj_rotate.saveRY - nowObj.obj_rotate.defaultRoll
@@ -451,7 +456,7 @@ package
 		private function setCamera():void
 		{
 
-			/*while (layerCam.numChildren)
+			while (layerCam.numChildren)
 			{
 				layerCam.removeChildAt(0)
 			}
@@ -461,16 +466,16 @@ package
 
 			// Create the camera
 			cam=Camera.getCamera();
-			cam.setMode(camW, camH, 30);
+			cam.setMode(camW, camH, 5);
 			cam.setQuality(0, 100)
 
 			// Create a video <--------scene we see
 			vid=new Video(camW, camH);
 			vid.attachCamera(cam);
-			layerCam.addChild(vid)*/
+			layerCam.addChild(vid)
 
 
-			while (layerCam.numChildren)
+			/*while (layerCam.numChildren)
 			{
 				layerCam.removeChildAt(0)
 			}
@@ -491,7 +496,7 @@ package
 //			vid.cacheAsBitmap=true
 			vid.x=-90
 //			layerCam.addChild(vid) 
-			trace("layerCam.numChildren= " + layerCam.numChildren)
+			trace("layerCam.numChildren= " + layerCam.numChildren)*/
 			//
 		}
 
@@ -708,13 +713,30 @@ package
 		public function chooseObjHandler(event:MouseEvent):void
 		{
 
+			trace("event.target= " + event.target)
+			
+			/*if(event.target=="[object NativeText]")
+			{
+				trace("I got tag")
+				
+//				var target:String=event.target.parent.parent.name
+//				trace("target= "+target)
+				
+				nowObjSelect=event.target.parent
+				nowObjSelect.nt.text="got"
+				nowObjSelect.nt.unfreeze();
+					
+				trace("nowObjSelect= "+nowObjSelect)
+				
+				
+			}*/
+			
 
 			if ((event.target.name !== "butKill") && (event.target != stage))
 			{
 
 				var target:String=event.target.parent.parent.name
 			}
-			else
 			{
 //				trace("event.target= " + event.target)
 
@@ -728,15 +750,33 @@ package
 //				nowObjectIndex=int(nowObjSelect.name)
 				nowObjSelect.addEventListener(TransformGestureEvent.GESTURE_ZOOM, zoomHandler)
 //				ptScalePoint=new Point(nowObjSelect.x + nowObjSelect.width / 2, nowObjSelect.y + nowObjSelect.height / 2);
+					
+
 
 				//如果按的是同一個frame,原本看的到的UI就關掉
 				if ((layerUISide.visible) && (preObjSelect == nowObjSelect))
 				{
 					layerUISide.visible=false
+					//
+					nowObjSelect.nt.x =0
+					nowObjSelect.nt.y =0- (nowObjSelect.nt.height)
+//					nowObjSelect.nt.borderThickness=3
+//					nowObjSelect.nt.borderCornerSize=3
+//					nowObjSelect.nt.borderColor=0x0FFF00
+					layerUI.removeChild
+					nowObjSelect.nt.freeze();
 				}
 				else
 				{
 					layerUISide.visible=true
+					//	
+
+					nowObjSelect.nt.x = bk_tag.x
+					nowObjSelect.nt.y = bk_tag.y
+//					nowObjSelect.nt.borderThickness=0
+//					nowObjSelect.nt.borderCornerSize=0
+//					nowObjSelect.nt.borderColor=0x000000
+					nowObjSelect.nt.unfreeze();
 
 				}
 
@@ -996,11 +1036,19 @@ package
 			butDrog.y=butKill.y + dis
 			butAlphaUp.y=butDrog.y + dis
 			butAlphaDown.y=butAlphaUp.y + dis
-
+			//
+			//background of tag
+			bk_tag.graphics.beginFill(0xFFFFFF)
+			bk_tag.graphics.drawRect(0,0,200,100)
+			bk_tag.x=butKill.x-dis
+			bk_tag.y=butAlphaDown.y+dis
+					
+			//	
 			layerUISide.addChild(butKill)
 			layerUISide.addChild(butDrog)
 			layerUISide.addChild(butAlphaUp)
 			layerUISide.addChild(butAlphaDown)
+			layerUISide.addChild(bk_tag)
 
 
 
