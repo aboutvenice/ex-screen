@@ -12,6 +12,7 @@ package
 	import flash.media.CameraUI;
 	import flash.media.MediaPromise;
 	import flash.media.MediaType;
+	import flash.text.ReturnKeyLabel;
 
 
 	public class photoClass extends MovieClip
@@ -22,6 +23,13 @@ package
 		public var loader:Loader;
 		private var tag_mode:String;
 		public var myParent:DisplayObject
+		public var obj_rotate:rotateClass
+		public var tag_load:Boolean=false;
+		public var nowScale:Number
+//		private var nt:NativeText;
+		public var tag:String="tag1"
+
+		public var nt:NativeText;
 		
 		public function photoClass(_parent:DisplayObject)
 		{
@@ -75,6 +83,7 @@ package
 		
 		protected function imageUse(event:MediaEvent):void
 		{
+			trace("photoClass.imageUse(event)");
 			
 			
 			var mediaPromise:MediaPromise = event.data;
@@ -82,8 +91,6 @@ package
 				loader = new Loader();
 				loader.contentLoaderInfo.addEventListener(Event.COMPLETE, loaderCompleted);
 				loader.loadFilePromise(mediaPromise);
-				
-//				removeEvent()
 
 				return;
 			}  
@@ -109,6 +116,7 @@ package
 					var c:CameraRoll = new CameraRoll();
 					c.addBitmapData(bitmapData);
 					trace("photo save")
+					dispatchEvent(new Event("photoSave"))
 				}
 			
 			
@@ -116,25 +124,57 @@ package
 			{
 				trace("loader.width= "+loader.width)
 				trace("loader.height= "+loader.height)
-				loader.scaleX=loader.scaleY=.2
+				loader.scaleX=loader.scaleY=.3
 				addChild(loader)
-				reSizeClass.resize(loader,myParent)
+//				reSizeClass.resize(loader,myParent)
 				trace("photo select:loaded")
 			
 			}
+			
+			
+			nowScale=reSizeClass.getScale
+			//
+			setTagText()	
+//			trace("nowScale= "+nowScale)	
+//			trace("photoClass.loaderCompleted(e)");
+			tag_load=true
+			
 		}
 		
+		private function setTagText():void
+		{
+			nt= new NativeText(1);
+			nt.returnKeyLabel = ReturnKeyLabel.DONE;
+			nt.autoCorrect = true;
+			nt.fontSize = 40;
+//			nt.borderThickness = 5;
+//			nt.borderCornerSize=3
+			nt.borderColor=0x0FFF00
+			nt.fontFamily = "Arial";
+			nt.text = "default";
+			nt.width = 200
+			nt.x =0// (myParent.stage.stageWidth / 2) - (nt.width / 2);
+			nt.y =0- (nt.height); //(myParent.stage.stageHeight / 3) - (nt.height);
+			addChild(nt);
+			nt.freeze()
+			
+		}		
 		
 		protected function mediaError(event:ErrorEvent):void
 		{
 			trace("photoClass.mediaError(event)");
-//			removeEvent()
+			//通知Main,這個class被取消了
+			dispatchEvent(new Event("cancel"))
+
+
 		}
 		
 		protected function browseCancelled(event:Event):void
 		{
 			trace("photoClass.browseCancelled(event)");
-//			removeEvent()
+			//通知Main,這個class被取消了
+			dispatchEvent(new Event("browserCancel"))
+			
 		}
 		
 		private function removeEvent():void
@@ -144,6 +184,12 @@ package
 			cameraRoll.removeEventListener(MediaEvent.SELECT,imageUse)
 			cameraRoll.removeEventListener(Event.CANCEL, browseCancelled);
 			cameraRoll.removeEventListener(ErrorEvent.ERROR, mediaError);
+			
+		}
+		
+		public function setRotate(_yaw:Number,_roll:Number):void
+		{
+			obj_rotate=new rotateClass(this,_yaw,_roll)
 			
 		}
 		
