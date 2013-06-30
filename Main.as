@@ -131,7 +131,7 @@ package
 			//--------------------------------------------------
 			// visual
 			//--------------------------------------------------
-			layerText.visible=true
+			layerText.visible=false
 			addChild(layerCam)
 //			layerContent.cacheAsBitmap=true
 //			layerContent.cacheAsBitmapMatrix=new Matrix()
@@ -728,7 +728,7 @@ package
 		public function chooseObjHandler(event:MouseEvent):void
 		{
 
-			trace("event.target= " + event.target)
+//			trace("event.target= " + event.target)
 
 			/*if(event.target=="[object NativeText]")
 			{
@@ -842,7 +842,6 @@ package
 					//如果是第一次
 					array_tag.push(nowTag)
 					trace("first push Array")
-					
 				}
 				
 			}
@@ -859,23 +858,24 @@ package
 			layerTag.visible=true
 			
 			while (layerTag.numChildren > 0) {
+				layerTag.getChildAt(0).removeEventListener(MouseEvent.CLICK,callTagFrame)
 				layerTag.removeChildAt(0);
 			}
 			
 			
 			for (var i:int=0; i < array_tag.length; i++)
 			{
-//				nowObj=array_FrameObj[i]
-//				trace("nowObj.tags.text= "+nowObj.tags.text)
 				
 				var but_tag:Sprite=new Sprite()
 				but_tag.graphics.beginFill(0x0000FF)
 				but_tag.graphics.drawCircle(0,0,50)
 				but_tag.x=(100*i)+50
 				but_tag.y=stage.stageHeight-200
+				but_tag.addEventListener(MouseEvent.CLICK,callTagFrame)
+				but_tag.name=String(array_tag[i])
 				//	
 				text_but=new TextField()
-				text_but.text=String(array_tag[i])
+				text_but.text=but_tag.name
 				text_but.textColor=0xFFFF00
 				//	
 				but_tag.addChild(text_but)
@@ -884,6 +884,33 @@ package
 			}	
 			
 			
+		}
+		
+		public function callTagFrame(e:MouseEvent):void
+		{
+			var nowTag:String=e.target.name
+			
+			trace("nowTag= "+nowTag)	
+			for (var i:int = 0; i < array_FrameObj.length; i++) 
+			{
+				var nowObj:*=array_FrameObj[i]
+				trace("nowObj.tags.text= "+nowObj.tags.text)	
+					
+				if (nowObj.tags.text!==nowTag) 
+				{
+					trace("hide")
+					nowObj.visible=false
+				}
+				else 
+				{
+					trace("show")
+					nowObj.visible=true
+						
+				}	
+				
+			}
+			
+				
 		}
 
 		private function scaleFromCenter(ob:*, sx:Number, sy:Number, ptScalePoint:Point):void
