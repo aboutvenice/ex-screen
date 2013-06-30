@@ -26,10 +26,7 @@ package
 		public var obj_rotate:rotateClass
 		public var tag_load:Boolean=false;
 		public var nowScale:Number
-//		private var nt:NativeText;
-		public var tag:String="tag1"
-
-		public var nt:NativeText;
+		public var tags:NativeText;
 		
 		public function photoClass(_parent:DisplayObject)
 		{
@@ -143,20 +140,23 @@ package
 		
 		private function setTagText():void
 		{
-			nt= new NativeText(1);
-			nt.returnKeyLabel = ReturnKeyLabel.DONE;
-			nt.autoCorrect = true;
-			nt.fontSize = 40;
+			tags= new NativeText(1);
+			tags.returnKeyLabel = ReturnKeyLabel.DONE;
+			tags.autoCorrect = true;
+			tags.fontSize = 40;
 //			nt.borderThickness = 5;
 //			nt.borderCornerSize=3
-			nt.borderColor=0x0FFF00
-			nt.fontFamily = "Arial";
-			nt.text = "default";
-			nt.width = 200
-			nt.x =0// (myParent.stage.stageWidth / 2) - (nt.width / 2);
-			nt.y =0- (nt.height); //(myParent.stage.stageHeight / 3) - (nt.height);
-			addChild(nt);
-			nt.freeze()
+			tags.borderColor=0x0FFF00
+			tags.fontFamily = "Arial";
+			tags.text = "default";
+			tags.width = 200
+			tags.x =0// (myParent.stage.stageWidth / 2) - (nt.width / 2);
+			tags.y =0- (tags.height); //(myParent.stage.stageHeight / 3) - (nt.height);
+			addChild(tags);
+			tags.freeze()
+				
+			dispatchEvent(new Event("tagLoaded"))
+
 			
 		}		
 		

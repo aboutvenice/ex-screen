@@ -36,6 +36,8 @@ package
 		private var layerContent:Sprite=new Sprite();
 		public var layerText:Sprite=new Sprite()
 		private var layerUI:Sprite=new Sprite()
+		private var layerTag:Sprite=new Sprite()
+			
 		private var layerUISide:Sprite=new Sprite()
 		private var layerCam:Sprite=new Sprite()
 		private var butShowWeb:Sprite=new Sprite()
@@ -53,7 +55,7 @@ package
 		private var butAlphaDown:Sprite=new Sprite()
 		private var bk_tag:Sprite=new Sprite()
 
-			
+
 
 		public var text_but:TextField
 		//tag
@@ -101,6 +103,7 @@ package
 		private var diffX:Number=0;
 		private var diffY:Number=0;
 		private var nt:NativeText;
+		private var array_tag:Array=new Array()
 
 
 
@@ -136,6 +139,8 @@ package
 			addChild(layerContent)
 			addChild(layerText)
 			addChild(layerUI)
+			layerTag.visible=false
+			layerUI.addChild(layerTag)
 			layerUISide.visible=false
 			addChild(layerUISide)
 			stats.scaleX=stats.scaleY=2
@@ -325,37 +330,37 @@ package
 		{
 //			if (event.target == stage)
 //			{
-				trace("----------------")
+			trace("----------------")
 
 
-				var _x:Number=event.target.mouseX
-				var _y:Number=event.target.mouseY
+			var _x:Number=event.target.mouseX
+			var _y:Number=event.target.mouseY
 
-				if (tag_startMove)
-				{
-					//如果是第一次點
-					tag_startMove=false
-					firstX=_x
-					firstY=_y
-				}
+			if (tag_startMove)
+			{
+				//如果是第一次點
+				tag_startMove=false
+				firstX=_x
+				firstY=_y
+			}
 //				trace("firstX= " + firstX)
 //				trace("_x= " + _x)
 //				trace("firstY= " + firstY)
 //				trace("_y= " + _y)
 
-				var distanceX:Number=_x - firstX
-				var distanceY:Number=_y - firstY
+			var distanceX:Number=_x - firstX
+			var distanceY:Number=_y - firstY
 
 //				trace("distanceX= " + distanceX)
 //				trace("mouseRatoinX= " + mouseRatoinX)
 //				trace("distanceY= " + distanceY)
 //				trace("mouseRatoinY= " + mouseRatoinY)
 
-				diffX=distanceX / 200*-1 //*-1 讓world模式的移動方向正確
-				diffY=distanceY / 200
-				trace("diffX= " + diffX)
-				trace("diffY= " + diffY)
-				worldRun()
+			diffX=distanceX / 200 * -1 //*-1 讓world模式的移動方向正確
+			diffY=distanceY / 200
+			trace("diffX= " + diffX)
+			trace("diffY= " + diffY)
+			worldRun()
 
 
 //			}
@@ -372,7 +377,7 @@ package
 				nowObj.obj_rotate.defaultYaw+=diffX // effected by diffX
 				nowObj.obj_rotate.defaultRoll+=diffY // effected by diffX
 
-				trace("第 "+i+" 個物件 ----------")
+				trace("第 " + i + " 個物件 ----------")
 				trace("defaultYaw= " + nowObj.obj_rotate.defaultYaw.toFixed(3))
 				trace("defaultRoll= " + nowObj.obj_rotate.defaultRoll.toFixed(3))
 //				//		
@@ -384,8 +389,8 @@ package
 				diffYaw=nowYaw - nowObj.obj_rotate.defaultYaw
 				diffRoll=nowRoll - nowObj.obj_rotate.defaultRoll
 				//	
-				trace("diffYaw= "+diffYaw.toFixed(3))
-				trace("diffRoll= "+diffRoll.toFixed(3))
+				trace("diffYaw= " + diffYaw.toFixed(3))
+				trace("diffRoll= " + diffRoll.toFixed(3))
 				//	
 				nowObj.obj_rotate.start(diffYaw, diffRoll)
 
@@ -434,9 +439,7 @@ package
 
 					}
 
-					text_diff.text="diffYaw= " + diffYaw.toFixed(3) 
-						+ "\n" + "diffRoll= " + diffRoll.toFixed(3) 
-						+ "\n" + "Obj number= " + array_FrameObj.length + "\n"
+					text_diff.text="diffYaw= " + diffYaw.toFixed(3) + "\n" + "diffRoll= " + diffRoll.toFixed(3) + "\n" + "Obj number= " + array_FrameObj.length + "\n"
 
 
 
@@ -475,28 +478,28 @@ package
 			layerCam.addChild(vid)
 
 
-			/*while (layerCam.numChildren)
-			{
-				layerCam.removeChildAt(0)
-			}
+		/*while (layerCam.numChildren)
+		{
+			layerCam.removeChildAt(0)
+		}
 
-			var camW:int=stage.stageWidth / 1.6
-			var camH:int=stage.stageHeight / 2
+		var camW:int=stage.stageWidth / 1.6
+		var camH:int=stage.stageHeight / 2
 
-			// Create the camera
-			cam=Camera.getCamera();
-			cam.setMode(camW, camH, 10); //frameRate影響頗大
-			cam.setQuality(0, 10)
+		// Create the camera
+		cam=Camera.getCamera();
+		cam.setMode(camW, camH, 10); //frameRate影響頗大
+		cam.setQuality(0, 10)
 
 
-			// Create a video <--------scene we see
-			vid=new Video(camW, camH);
-			vid.attachCamera(cam);
-			vid.scaleX=vid.scaleY=2
+		// Create a video <--------scene we see
+		vid=new Video(camW, camH);
+		vid.attachCamera(cam);
+		vid.scaleX=vid.scaleY=2
 //			vid.cacheAsBitmap=true
-			vid.x=-90
-//			layerCam.addChild(vid) 
-			trace("layerCam.numChildren= " + layerCam.numChildren)*/
+		vid.x=-90
+//			layerCam.addChild(vid)
+		trace("layerCam.numChildren= " + layerCam.numChildren)*/
 			//
 		}
 
@@ -588,8 +591,10 @@ package
 //			layerContent.addChild(obj_web)
 //			tag_loaded=true
 
-			qr.scan();
-			qr.addEventListener(QRZBarEvent.SCANNED, scannedHandler);
+//			showTagedFrame()
+			
+//			qr.scan();
+//			qr.addEventListener(QRZBarEvent.SCANNED, scannedHandler);
 
 		}
 
@@ -643,6 +648,7 @@ package
 				//監聽來自photoClass的事件,圖片選擇是否取消	
 				obj_photo.addEventListener("browserCancel", onCancel)
 				obj_photo.addEventListener("photoSave", onSave)
+					
 
 			}
 			else if (tag_mode == "PhotoSelect")
@@ -655,6 +661,9 @@ package
 				layerContent.addChild(obj_photo)
 				//監聽來自photoClass的事件,圖片選擇是否取消
 				obj_photo.addEventListener("browserCancel", onCancel)
+				obj_photo.addEventListener("tagLoaded", onTagLoaded)
+				
+
 
 			}
 
@@ -663,7 +672,13 @@ package
 			tag_loaded=true
 
 		}
-
+		
+		protected function onTagLoaded(event:Event):void
+		{
+			addTag(obj_photo.tags.text)
+			
+		}
+		
 		protected function onSave(event:Event):void
 		{
 			trace("來自photoClass的事件,圖片照完了")
@@ -714,23 +729,23 @@ package
 		{
 
 			trace("event.target= " + event.target)
-			
+
 			/*if(event.target=="[object NativeText]")
 			{
 				trace("I got tag")
-				
+
 //				var target:String=event.target.parent.parent.name
 //				trace("target= "+target)
-				
+
 				nowObjSelect=event.target.parent
 				nowObjSelect.nt.text="got"
 				nowObjSelect.nt.unfreeze();
-					
+
 				trace("nowObjSelect= "+nowObjSelect)
-				
-				
+
+
 			}*/
-			
+
 
 			if ((event.target.name !== "butKill") && (event.target != stage))
 			{
@@ -750,7 +765,7 @@ package
 //				nowObjectIndex=int(nowObjSelect.name)
 				nowObjSelect.addEventListener(TransformGestureEvent.GESTURE_ZOOM, zoomHandler)
 //				ptScalePoint=new Point(nowObjSelect.x + nowObjSelect.width / 2, nowObjSelect.y + nowObjSelect.height / 2);
-					
+
 
 
 				//如果按的是同一個frame,原本看的到的UI就關掉
@@ -758,25 +773,27 @@ package
 				{
 					layerUISide.visible=false
 					//
-					nowObjSelect.nt.x =0
-					nowObjSelect.nt.y =0- (nowObjSelect.nt.height)
+					nowObjSelect.tags.x=0
+					nowObjSelect.tags.y=0 - (nowObjSelect.tags.height)
 //					nowObjSelect.nt.borderThickness=3
 //					nowObjSelect.nt.borderCornerSize=3
 //					nowObjSelect.nt.borderColor=0x0FFF00
-					layerUI.removeChild
-					nowObjSelect.nt.freeze();
+					trace("nowObjSelect.tags.text= " + nowObjSelect.tags.text)
+					addTag(nowObjSelect.tags.text)
+					nowObjSelect.tags.freeze();
+
 				}
 				else
 				{
 					layerUISide.visible=true
 					//	
 
-					nowObjSelect.nt.x = bk_tag.x
-					nowObjSelect.nt.y = bk_tag.y
+					nowObjSelect.tags.x=bk_tag.x
+					nowObjSelect.tags.y=bk_tag.y
 //					nowObjSelect.nt.borderThickness=0
 //					nowObjSelect.nt.borderCornerSize=0
 //					nowObjSelect.nt.borderColor=0x000000
-					nowObjSelect.nt.unfreeze();
+					nowObjSelect.tags.unfreeze();
 
 				}
 
@@ -786,6 +803,87 @@ package
 			}
 
 
+		}
+
+		private function addTag(_tag:String):void
+		{
+
+				
+			while(array_tag.length>0)
+			{
+				//先將array清空
+				array_tag.splice(0)
+			
+			}
+			
+			for (var i:int=0; i < array_FrameObj.length; i++)
+			{
+				var nowTagObj:*=array_FrameObj[i]
+					
+				var nowTag:String=nowTagObj.tags.text
+				var nowResult:int=array_tag.indexOf(nowTag)
+					
+				if (array_tag.length > 0)
+				{
+					if (nowResult == -1)
+					{
+						//如果都沒有與之前相等的tag
+						array_tag.push(nowTag)
+						trace("push Array")
+					}
+					else
+					{
+						//之前已經有一樣的tag了
+						trace("no push")
+						
+					}
+				}else
+				{
+					//如果是第一次
+					array_tag.push(nowTag)
+					trace("first push Array")
+					
+				}
+				
+			}
+			
+			showTagedFrame()
+
+		}
+		
+		
+		private function showTagedFrame():void
+		{
+			trace("----------------")
+
+			layerTag.visible=true
+			
+			while (layerTag.numChildren > 0) {
+				layerTag.removeChildAt(0);
+			}
+			
+			
+			for (var i:int=0; i < array_tag.length; i++)
+			{
+//				nowObj=array_FrameObj[i]
+//				trace("nowObj.tags.text= "+nowObj.tags.text)
+				
+				var but_tag:Sprite=new Sprite()
+				but_tag.graphics.beginFill(0x0000FF)
+				but_tag.graphics.drawCircle(0,0,50)
+				but_tag.x=(100*i)+50
+				but_tag.y=stage.stageHeight-200
+				//	
+				text_but=new TextField()
+				text_but.text=String(array_tag[i])
+				text_but.textColor=0xFFFF00
+				//	
+				but_tag.addChild(text_but)
+				layerTag.addChild(but_tag)
+					
+			}	
+			
+			
 		}
 
 		private function scaleFromCenter(ob:*, sx:Number, sy:Number, ptScalePoint:Point):void
@@ -1039,10 +1137,10 @@ package
 			//
 			//background of tag
 			bk_tag.graphics.beginFill(0xFFFFFF)
-			bk_tag.graphics.drawRect(0,0,200,100)
-			bk_tag.x=butKill.x-dis
-			bk_tag.y=butAlphaDown.y+dis
-					
+			bk_tag.graphics.drawRect(0, 0, 200, 100)
+			bk_tag.x=butKill.x - dis
+			bk_tag.y=butAlphaDown.y + dis
+
 			//	
 			layerUISide.addChild(butKill)
 			layerUISide.addChild(butDrog)
