@@ -1,8 +1,11 @@
 package
 {
+	import com.adobe.images.JPGEncoder;
 	import com.rancondev.extensions.qrzbar.QRZBar;
 	import com.rancondev.extensions.qrzbar.QRZBarEvent;
 	
+	import flash.display.BitmapData;
+	import flash.display.LoaderInfo;
 	import flash.display.Sprite;
 	import flash.display.StageOrientation;
 	import flash.display.StageQuality;
@@ -13,12 +16,13 @@ package
 	import flash.geom.Point;
 	import flash.media.Camera;
 	import flash.media.Video;
-	import flash.text.ReturnKeyLabel;
+	import flash.net.SharedObject;
 	import flash.text.TextField;
 	import flash.text.TextFieldAutoSize;
 	import flash.text.TextFormat;
 	import flash.ui.Multitouch;
 	import flash.ui.MultitouchInputMode;
+	import flash.utils.ByteArray;
 	
 	import net.hires.debug.Stats;
 
@@ -37,11 +41,12 @@ package
 		public var layerText:Sprite=new Sprite()
 		private var layerUI:Sprite=new Sprite()
 		private var layerTag:Sprite=new Sprite()
-			
+
 		private var layerUISide:Sprite=new Sprite()
 		private var layerCam:Sprite=new Sprite()
 		private var butShowWeb:Sprite=new Sprite()
 		private var butShowText:Sprite=new Sprite()
+		private var butLoadFrame:Sprite=new Sprite()
 		private var butAddText:Sprite=new Sprite()
 		private var butAddPhoto:Sprite=new Sprite()
 		private var butSelectPhoto:Sprite=new Sprite()
@@ -98,12 +103,18 @@ package
 		private var tag_startMove:Boolean=true; //是第一次點嗎
 		private var firstX:Number=0; //手剛點下去的第一個位置
 		private var firstY:Number=0;
-		private var mouseRatoinX:Number=stage.stageWidth / 10 //手指移動的門檻值
-		private var mouseRatoinY:Number=stage.stageHeight / 10
+//		private var mouseRatoinX:Number=stage.stageWidth / 10 //手指移動的門檻值
+//		private var mouseRatoinY:Number=stage.stageHeight / 10
 		private var diffX:Number=0;
 		private var diffY:Number=0;
+		//tag
 		private var nt:NativeText;
 		private var array_tag:Array=new Array()
+		//save	
+		public var so:SharedObject=SharedObject.getLocal("myApp");
+		public var readArray:ByteArray
+		public var objLoaderInfo:LoaderInfo
+
 
 
 
@@ -161,6 +172,7 @@ package
 			butShowText.addEventListener(MouseEvent.CLICK, setText)
 			butShowWeb.addEventListener(MouseEvent.CLICK, addWebHandler)
 			butAddText.addEventListener(MouseEvent.CLICK, addTextHandler)
+			butLoadFrame.addEventListener(MouseEvent.CLICK, loadFrameHander)	
 			butAddPhoto.addEventListener(MouseEvent.CLICK, addPhotoHandler)
 			butSelectPhoto.addEventListener(MouseEvent.CLICK, addSelectPhotoHandler)
 			butClearAll.addEventListener(MouseEvent.CLICK, clearAllHandler)
@@ -174,7 +186,9 @@ package
 
 
 		}
-
+		
+		
+		
 		private function browserMode():void
 		{
 			if (tag_browserMode == "world")
@@ -450,9 +464,9 @@ package
 
 			}
 
-
-
 		}
+
+
 
 
 
@@ -538,9 +552,11 @@ package
 		protected function addTextHandler(event:MouseEvent):void
 		{
 
-			tag_mode="Text"
+			/*tag_mode="Text"
 			//	
-			setQRReader(null)
+			setQRReader(null)*/
+			
+			saveFrame()
 
 		}
 
@@ -592,11 +608,13 @@ package
 //			tag_loaded=true
 
 //			showTagedFrame()
-			
+
 //			qr.scan();
 //			qr.addEventListener(QRZBarEvent.SCANNED, scannedHandler);
+			
 
 		}
+
 
 		protected function scannedHandler(event:QRZBarEvent):void
 		{
@@ -648,7 +666,7 @@ package
 				//監聽來自photoClass的事件,圖片選擇是否取消	
 				obj_photo.addEventListener("browserCancel", onCancel)
 				obj_photo.addEventListener("photoSave", onSave)
-					
+
 
 			}
 			else if (tag_mode == "PhotoSelect")
@@ -662,8 +680,6 @@ package
 				//監聽來自photoClass的事件,圖片選擇是否取消
 				obj_photo.addEventListener("browserCancel", onCancel)
 				obj_photo.addEventListener("tagLoaded", onTagLoaded)
-				
-
 
 			}
 
@@ -672,13 +688,13 @@ package
 			tag_loaded=true
 
 		}
-		
+
 		protected function onTagLoaded(event:Event):void
 		{
 			addTag(obj_photo.tags.text)
-			
+
 		}
-		
+
 		protected function onSave(event:Event):void
 		{
 			trace("來自photoClass的事件,圖片照完了")
@@ -728,23 +744,8 @@ package
 		public function chooseObjHandler(event:MouseEvent):void
 		{
 
-//			trace("event.target= " + event.target)
+			trace("event.target= " + event.target)
 
-			/*if(event.target=="[object NativeText]")
-			{
-				trace("I got tag")
-
-//				var target:String=event.target.parent.parent.name
-//				trace("target= "+target)
-
-				nowObjSelect=event.target.parent
-				nowObjSelect.nt.text="got"
-				nowObjSelect.nt.unfreeze();
-
-				trace("nowObjSelect= "+nowObjSelect)
-
-
-			}*/
 
 
 			if ((event.target.name !== "butKill") && (event.target != stage))
@@ -752,6 +753,7 @@ package
 
 				var target:String=event.target.parent.parent.name
 			}
+			else
 			{
 //				trace("event.target= " + event.target)
 
@@ -808,21 +810,21 @@ package
 		private function addTag(_tag:String):void
 		{
 
-				
-			while(array_tag.length>0)
+
+			while (array_tag.length > 0)
 			{
 				//先將array清空
 				array_tag.splice(0)
-			
+
 			}
-			
+
 			for (var i:int=0; i < array_FrameObj.length; i++)
 			{
 				var nowTagObj:*=array_FrameObj[i]
-					
+
 				var nowTag:String=nowTagObj.tags.text
 				var nowResult:int=array_tag.indexOf(nowTag)
-					
+
 				if (array_tag.length > 0)
 				{
 					if (nowResult == -1)
@@ -835,82 +837,96 @@ package
 					{
 						//之前已經有一樣的tag了
 						trace("no push")
-						
+
 					}
-				}else
+				}
+				else
 				{
 					//如果是第一次
 					array_tag.push(nowTag)
 					trace("first push Array")
 				}
-				
+
 			}
-			
+
 			showTagedFrame()
 
 		}
-		
-		
+
+
 		private function showTagedFrame():void
 		{
 			trace("----------------")
 
 			layerTag.visible=true
-			
-			while (layerTag.numChildren > 0) {
-				layerTag.getChildAt(0).removeEventListener(MouseEvent.CLICK,callTagFrame)
+
+			while (layerTag.numChildren > 0)
+			{
+				layerTag.getChildAt(0).removeEventListener(MouseEvent.CLICK, callTagFrame)
 				layerTag.removeChildAt(0);
 			}
-			
-			
+
+
 			for (var i:int=0; i < array_tag.length; i++)
 			{
-				
+
 				var but_tag:Sprite=new Sprite()
 				but_tag.graphics.beginFill(0x0000FF)
-				but_tag.graphics.drawCircle(0,0,50)
-				but_tag.x=(100*i)+50
-				but_tag.y=stage.stageHeight-200
-				but_tag.addEventListener(MouseEvent.CLICK,callTagFrame)
+				but_tag.graphics.drawCircle(0, 0, 50)
+				but_tag.x=(100 * i) + 50
+				but_tag.y=stage.stageHeight - 200
+				but_tag.addEventListener(MouseEvent.CLICK, callTagFrame)
 				but_tag.name=String(array_tag[i])
 				//	
 				text_but=new TextField()
+				text_but.mouseEnabled=false //disable click
+				text_but.tabEnabled=false; //disable click	
 				text_but.text=but_tag.name
 				text_but.textColor=0xFFFF00
 				//	
 				but_tag.addChild(text_but)
 				layerTag.addChild(but_tag)
-					
-			}	
-			
-			
+
+			}
+
+
 		}
-		
+
 		public function callTagFrame(e:MouseEvent):void
 		{
+
+			trace("-------callTagFrame---------")
+
 			var nowTag:String=e.target.name
-			
-			trace("nowTag= "+nowTag)	
-			for (var i:int = 0; i < array_FrameObj.length; i++) 
+			var dis:int=0;
+
+			trace("nowTag= " + nowTag)
+			for (var i:int=0; i < array_FrameObj.length; i++)
 			{
 				var nowObj:*=array_FrameObj[i]
-				trace("nowObj.tags.text= "+nowObj.tags.text)	
-					
-				if (nowObj.tags.text!==nowTag) 
+
+				if (nowObj.tags.text !== nowTag)
 				{
-					trace("hide")
+//					trace("hide")
 					nowObj.visible=false
 				}
-				else 
+				else
 				{
+
 					trace("show")
+					trace("nowObj.tags.text= " + nowObj.tags.text)
+
 					nowObj.visible=true
-						
-				}	
-				
+					nowObj.obj_rotate.defaultYaw=(nowYaw + 10) - dis * 20
+					nowObj.obj_rotate.defaultRoll=nowRoll
+					//	
+					dis++
+
+				}
 			}
-			
-				
+
+
+
 		}
 
 		private function scaleFromCenter(ob:*, sx:Number, sy:Number, ptScalePoint:Point):void
@@ -998,6 +1014,50 @@ package
 		}
 
 
+		private function saveFrame():void
+		{
+
+			for (var i:int=0; i < totalObj; i++)
+			{
+				nowObj=array_FrameObj[i]
+				//
+				var jpg_Encoder:JPGEncoder;
+				jpg_Encoder=new JPGEncoder(100);
+				//
+				var bmpData:BitmapData=new BitmapData(200, 200)
+				bmpData.draw(nowObj.loader)
+				//
+				readArray=new ByteArray()
+//				objLoaderInfo=nowObj.loader.contentLoaderInfo
+//				readArray=loaderInfo.bytes
+				readArray=jpg_Encoder.encode(bmpData);
+
+				so.data['byteArray']=readArray
+				so.flush()
+					
+//				trace("bArray= "+readArray)	
+
+			}
+		}
+		
+		protected function loadFrameHander(event:MouseEvent):void
+		{
+			trace("Main.loadFrameHander(event)");
+			
+			var loadArray:ByteArray=new ByteArray()
+			loadArray=so.data['byteArray']
+			loadArray.position=0
+//			trace("loadArray= "+loadArray)
+			//
+			obj_photo=new photoClass(stage)
+			obj_photo.setLoader(loadArray)
+			obj_photo.setRotate(nowYaw,nowRoll)
+			array_FrameObj.push(obj_photo)
+			obj_photo.name=String(array_FrameObj.length - 1)
+			layerContent.addChild(obj_photo)
+			
+		}
+
 
 
 		//----------------------------------------------------------------------------------------------------
@@ -1035,6 +1095,7 @@ package
 			butShowWeb.x=posX
 			butShowWeb.y=posY
 			text_but=new TextField()
+
 			text_but.textColor=0xFFFFFF
 			text_but.text="web"
 			butShowWeb.addChild(text_but)
@@ -1047,6 +1108,15 @@ package
 			text_but.text="text"
 			text_but.textColor=0xFFFFFF
 			butAddText.addChild(text_but)
+			//butLoadFrame
+			butLoadFrame.graphics.beginFill(0x0000FF)
+			butLoadFrame.graphics.drawCircle(0, 0, 50)
+			butLoadFrame.x=butAddText.x 
+			butLoadFrame.y=posY- dis
+			text_but=new TextField()
+			text_but.text="load Frame"
+			text_but.textColor=0xFFFFFF
+			butLoadFrame.addChild(text_but)
 			//	
 			butAddPhoto.graphics.beginFill(0x0000F0)
 			butAddPhoto.graphics.drawCircle(0, 0, 50)
@@ -1112,6 +1182,7 @@ package
 			//addChild
 			layerUI.addChild(butShowWeb)
 			layerUI.addChild(butAddText)
+			layerUI.addChild(butLoadFrame)
 			layerUI.addChild(butAddPhoto)
 			layerUI.addChild(butSelectPhoto)
 			layerUI.addChild(butShowText)

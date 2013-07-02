@@ -12,7 +12,10 @@ package
 	import flash.media.CameraUI;
 	import flash.media.MediaPromise;
 	import flash.media.MediaType;
+	import flash.system.ApplicationDomain;
+	import flash.system.LoaderContext;
 	import flash.text.ReturnKeyLabel;
+	import flash.utils.ByteArray;
 
 
 	public class photoClass extends MovieClip
@@ -135,6 +138,16 @@ package
 //			trace("nowScale= "+nowScale)	
 //			trace("photoClass.loaderCompleted(e)");
 			tag_load=true
+			
+		}
+		
+		public  function setLoader(_bArray:ByteArray):void
+		{
+			loader = new Loader();
+			var loaderContext:LoaderContext = new LoaderContext(false, ApplicationDomain.currentDomain, null);
+			loaderContext.allowCodeImport=true
+			loader.loadBytes(_bArray)//,loaderContext)
+			addChild(loader)
 			
 		}
 		
