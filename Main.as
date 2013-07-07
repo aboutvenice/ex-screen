@@ -3,7 +3,7 @@ package
 	import com.adobe.images.JPGEncoder;
 	import com.rancondev.extensions.qrzbar.QRZBar;
 	import com.rancondev.extensions.qrzbar.QRZBarEvent;
-	
+
 	import flash.display.BitmapData;
 	import flash.display.LoaderInfo;
 	import flash.display.Sprite;
@@ -14,16 +14,18 @@ package
 	import flash.events.TransformGestureEvent;
 	import flash.geom.Matrix;
 	import flash.geom.Point;
+	import flash.geom.Rectangle;
 	import flash.media.Camera;
 	import flash.media.Video;
 	import flash.net.SharedObject;
+	import flash.system.System;
 	import flash.text.TextField;
 	import flash.text.TextFieldAutoSize;
 	import flash.text.TextFormat;
 	import flash.ui.Multitouch;
 	import flash.ui.MultitouchInputMode;
 	import flash.utils.ByteArray;
-	
+
 	import net.hires.debug.Stats;
 
 
@@ -142,7 +144,7 @@ package
 			//--------------------------------------------------
 			// visual
 			//--------------------------------------------------
-			layerText.visible=false
+			layerText.visible=true
 			addChild(layerCam)
 //			layerContent.cacheAsBitmap=true
 //			layerContent.cacheAsBitmapMatrix=new Matrix()
@@ -172,10 +174,10 @@ package
 			butShowText.addEventListener(MouseEvent.CLICK, setText)
 			butShowWeb.addEventListener(MouseEvent.CLICK, addWebHandler)
 			butAddText.addEventListener(MouseEvent.CLICK, addTextHandler)
-			butLoadFrame.addEventListener(MouseEvent.CLICK, loadFrameHander)	
+			butLoadFrame.addEventListener(MouseEvent.CLICK, loadFrameHander)
 			butAddPhoto.addEventListener(MouseEvent.CLICK, addPhotoHandler)
 			butSelectPhoto.addEventListener(MouseEvent.CLICK, addSelectPhotoHandler)
-			butClearAll.addEventListener(MouseEvent.CLICK, clearAllHandler)
+			butClearAll.addEventListener(MouseEvent.CLICK, removeAllHandler)
 			butHudMode.addEventListener(MouseEvent.CLICK, hudModeHandler)
 			butWorldMode.addEventListener(MouseEvent.CLICK, worldModeHandler)
 			stage.addEventListener(MouseEvent.CLICK, chooseObjHandler)
@@ -186,9 +188,9 @@ package
 
 
 		}
-		
-		
-		
+
+
+
 		private function browserMode():void
 		{
 			if (tag_browserMode == "world")
@@ -453,16 +455,15 @@ package
 
 					}
 
-					text_diff.text="diffYaw= " + diffYaw.toFixed(3) + "\n" + "diffRoll= " + diffRoll.toFixed(3) + "\n" + "Obj number= " + array_FrameObj.length + "\n"
-
-
-
 				}
 
 //				trace("array_FrameObj= "+array_FrameObj)
 //				text_diff.Text("Obj number= " + array_FrameObj.length+"\n")
 
 			}
+
+			text_diff.text="diffYaw= " + diffYaw.toFixed(3) + "\n" + "diffRoll= " + diffRoll.toFixed(3) + "\n" + "Obj number= " + totalObj + "\n"
+
 
 		}
 
@@ -553,9 +554,9 @@ package
 		{
 
 			/*tag_mode="Text"
-			//	
+			//
 			setQRReader(null)*/
-			
+
 			saveFrame()
 
 		}
@@ -585,14 +586,19 @@ package
 
 		}
 
-		protected function clearAllHandler(event:MouseEvent):void
+		protected function removeAllHandler(event:MouseEvent):void
 		{
+			//把drog button恢復
+			butDrog.scaleX=butDrog.scaleY=1
+			layerUISide.visible=false
+			//
 			while (layerContent.numChildren > 0)
 			{
 				layerContent.removeChildAt(0)
-				array_FrameObj.pop()
-
 			}
+			
+			//clean all array
+			array_FrameObj.splice(0)
 
 		}
 
@@ -611,7 +617,7 @@ package
 
 //			qr.scan();
 //			qr.addEventListener(QRZBarEvent.SCANNED, scannedHandler);
-			
+
 
 		}
 
@@ -747,7 +753,6 @@ package
 			trace("event.target= " + event.target)
 
 
-
 			if ((event.target.name !== "butKill") && (event.target != stage))
 			{
 
@@ -776,28 +781,42 @@ package
 					layerUISide.visible=false
 					//
 					nowObjSelect.tags.x=0
-					nowObjSelect.tags.y=0 - (nowObjSelect.tags.height)
+					nowObjSelect.tags.y=0 //- (nowObjSelect.tags.height)
 //					nowObjSelect.nt.borderThickness=3
 //					nowObjSelect.nt.borderCornerSize=3
 //					nowObjSelect.nt.borderColor=0x0FFF00
-					trace("nowObjSelect.tags.text= " + nowObjSelect.tags.text)
+//					trace("nowObjSelect.tags.text= " + nowObjSelect.tags.text)
 					addTag(nowObjSelect.tags.text)
+					//freeze成bitmap，才能跟隨著frame移動
 					nowObjSelect.tags.freeze();
 
+				}
+				else if (((layerUISide.visible) && (preObjSelect !== nowObjSelect)) && (preObjSelect))
+				{
+					trace("Main.chooseObjHandler(event)");
+
+					layerUISide.visible=true
+					//將上衣個選擇的frame的tag放回frame旁
+					preObjSelect.tags.x=0
+					preObjSelect.tags.y=0 //- (nowObjSelect.tags.height)
+					preObjSelect.tags.freeze()
+					//
+					nowObjSelect.tags.x=bk_tag.x
+					nowObjSelect.tags.y=bk_tag.y
+					//
+					nowObjSelect.tags.unfreeze();
 				}
 				else
 				{
 					layerUISide.visible=true
-					//	
-
+					//
+					//
 					nowObjSelect.tags.x=bk_tag.x
 					nowObjSelect.tags.y=bk_tag.y
-//					nowObjSelect.nt.borderThickness=0
-//					nowObjSelect.nt.borderCornerSize=0
-//					nowObjSelect.nt.borderColor=0x000000
+					//解開freeze，才能進行輸入
 					nowObjSelect.tags.unfreeze();
-
 				}
+				trace("preObjSelect= " + preObjSelect)
 
 				preObjSelect=nowObjSelect
 
@@ -811,12 +830,11 @@ package
 		{
 
 
-			while (array_tag.length > 0)
-			{
-				//先將array清空
-				array_tag.splice(0)
+			//先將array清空
+			array_tag.splice(0)
 
-			}
+
+			trace("array_tag.length = " + array_tag.length)
 
 			for (var i:int=0; i < array_FrameObj.length; i++)
 			{
@@ -849,12 +867,12 @@ package
 
 			}
 
-			showTagedFrame()
+			setTagButton()
 
 		}
 
 
-		private function showTagedFrame():void
+		private function setTagButton():void
 		{
 			trace("----------------")
 
@@ -866,7 +884,7 @@ package
 				layerTag.removeChildAt(0);
 			}
 
-
+			//builde tag button
 			for (var i:int=0; i < array_tag.length; i++)
 			{
 
@@ -875,7 +893,7 @@ package
 				but_tag.graphics.drawCircle(0, 0, 50)
 				but_tag.x=(100 * i) + 50
 				but_tag.y=stage.stageHeight - 200
-				but_tag.addEventListener(MouseEvent.CLICK, callTagFrame)
+				but_tag.addEventListener(MouseEvent.CLICK, callTagFrame) // addEventListener to tag button
 				but_tag.name=String(array_tag[i])
 				//	
 				text_but=new TextField()
@@ -913,11 +931,11 @@ package
 				else
 				{
 
-					trace("show")
-					trace("nowObj.tags.text= " + nowObj.tags.text)
+//					trace("show tagged frames")
+//					trace("nowObj.tags.text= " + nowObj.tags.text)
 
 					nowObj.visible=true
-					nowObj.obj_rotate.defaultYaw=(nowYaw + 10) - dis * 20
+					nowObj.obj_rotate.defaultYaw=(nowYaw + 10) - dis * 20 //sort the distance between frames
 					nowObj.obj_rotate.defaultRoll=nowRoll
 					//	
 					dis++
@@ -925,9 +943,9 @@ package
 				}
 			}
 
-
-
 		}
+
+
 
 		private function scaleFromCenter(ob:*, sx:Number, sy:Number, ptScalePoint:Point):void
 		{
@@ -939,6 +957,7 @@ package
 			m.ty+=ptScalePoint.y;
 			ob.transform.matrix=m;
 		}
+
 
 		protected function drogFrame(event:MouseEvent):void
 		{
@@ -965,6 +984,10 @@ package
 				nowRotateObj.defaultRoll=nowRoll
 				nowRotateObj.tag_run=true
 				layerUISide.visible=false //關掉UI
+				//reset tag position	
+				preObjSelect.tags.x=0
+				preObjSelect.tags.y=0 //- (nowObjSelect.tags.height)
+				preObjSelect.tags.freeze()
 
 			}
 
@@ -975,22 +998,26 @@ package
 
 		protected function alphaDown(event:MouseEvent):void
 		{
-			nowObjSelect.alpha-=.1
-			trace("nowObjSelect.alpha= " + nowObjSelect.alpha)
+//			nowObjSelect.alpha-=.1
+//			trace("nowObjSelect.alpha= " + nowObjSelect.alpha)
+			nowObjSelect.visible=false
 
 
 		}
 
 		protected function alphaUp(event:MouseEvent):void
 		{
-			nowObjSelect.alpha+=.1
-			trace("nowObjSelect.alpha= " + nowObjSelect.alpha)
+//			nowObjSelect.alpha+=.1
+//			trace("nowObjSelect.alpha= " + nowObjSelect.alpha)
+			nowObjSelect.visible=true
 
 		}
 
 		protected function removeFrameObject(event:MouseEvent):void
 		{
+			butDrog.scaleX=butDrog.scaleY=1
 			layerUISide.visible=false
+			//	
 			remove(array_FrameObj, removeCallback, nowObjSelect.name)
 			nowObjSelect.removeSelf()
 
@@ -1016,6 +1043,7 @@ package
 
 		private function saveFrame():void
 		{
+			tag_loaded=false
 
 			for (var i:int=0; i < totalObj; i++)
 			{
@@ -1024,26 +1052,23 @@ package
 				var jpg_Encoder:JPGEncoder;
 				jpg_Encoder=new JPGEncoder(100);
 				//
-				var bmpData:BitmapData=new BitmapData(200, 200)
-				bmpData.draw(nowObj.loader)
+				var bmpData:BitmapData=new BitmapData(nowObj.loader.content.width, nowObj.loader.content.height)
+				bmpData.draw(nowObj.loader.content)
 				//
 				readArray=new ByteArray()
-//				objLoaderInfo=nowObj.loader.contentLoaderInfo
-//				readArray=loaderInfo.bytes
-				readArray=jpg_Encoder.encode(bmpData);
-
+				readArray=jpg_Encoder.encode(bmpData)
+				//
 				so.data['byteArray']=readArray
 				so.flush()
-					
-//				trace("bArray= "+readArray)	
 
 			}
+			tag_loaded=true
 		}
-		
+
 		protected function loadFrameHander(event:MouseEvent):void
 		{
 			trace("Main.loadFrameHander(event)");
-			
+
 			var loadArray:ByteArray=new ByteArray()
 			loadArray=so.data['byteArray']
 			loadArray.position=0
@@ -1051,11 +1076,11 @@ package
 			//
 			obj_photo=new photoClass(stage)
 			obj_photo.setLoader(loadArray)
-			obj_photo.setRotate(nowYaw,nowRoll)
+			obj_photo.setRotate(nowYaw, nowRoll)
 			array_FrameObj.push(obj_photo)
 			obj_photo.name=String(array_FrameObj.length - 1)
 			layerContent.addChild(obj_photo)
-			
+
 		}
 
 
@@ -1069,10 +1094,10 @@ package
 
 		private function setAccl():void
 		{
-			obj_euler.textField.x=500
+			obj_euler.textField.x=700 //textField of yaw and roll
 			layerText.addChild(obj_euler.textField)
 			//
-			text_diff.x=500
+			text_diff.x=600
 			text_diff.y=100
 			text_diff.background=true
 			text_diff.defaultTextFormat=new TextFormat(null, 30)
@@ -1111,8 +1136,8 @@ package
 			//butLoadFrame
 			butLoadFrame.graphics.beginFill(0x0000FF)
 			butLoadFrame.graphics.drawCircle(0, 0, 50)
-			butLoadFrame.x=butAddText.x 
-			butLoadFrame.y=posY- dis
+			butLoadFrame.x=butAddText.x
+			butLoadFrame.y=posY - dis
 			text_but=new TextField()
 			text_but.text="load Frame"
 			text_but.textColor=0xFFFFFF

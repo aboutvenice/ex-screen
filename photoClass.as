@@ -122,8 +122,8 @@ package
 			
 			}else if(tag_mode=="select")
 			{
-				trace("loader.width= "+loader.width)
-				trace("loader.height= "+loader.height)
+//				trace("loader.width= "+loader.width)
+//				trace("loader.height= "+loader.height)
 				loader.scaleX=loader.scaleY=.3
 				addChild(loader)
 //				reSizeClass.resize(loader,myParent)
@@ -138,6 +138,8 @@ package
 //			trace("nowScale= "+nowScale)	
 //			trace("photoClass.loaderCompleted(e)");
 			tag_load=true
+			trace("loader.width= "+loader.width)
+			trace("loader.height= "+loader.height)
 			
 		}
 		
