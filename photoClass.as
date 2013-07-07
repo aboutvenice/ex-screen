@@ -12,7 +12,10 @@ package
 	import flash.media.CameraUI;
 	import flash.media.MediaPromise;
 	import flash.media.MediaType;
+	import flash.system.ApplicationDomain;
+	import flash.system.LoaderContext;
 	import flash.text.ReturnKeyLabel;
+	import flash.utils.ByteArray;
 
 
 	public class photoClass extends MovieClip
@@ -26,10 +29,7 @@ package
 		public var obj_rotate:rotateClass
 		public var tag_load:Boolean=false;
 		public var nowScale:Number
-//		private var nt:NativeText;
-		public var tag:String="tag1"
-
-		public var nt:NativeText;
+		public var tags:NativeText;
 		
 		public function photoClass(_parent:DisplayObject)
 		{
@@ -122,8 +122,8 @@ package
 			
 			}else if(tag_mode=="select")
 			{
-				trace("loader.width= "+loader.width)
-				trace("loader.height= "+loader.height)
+//				trace("loader.width= "+loader.width)
+//				trace("loader.height= "+loader.height)
 				loader.scaleX=loader.scaleY=.3
 				addChild(loader)
 //				reSizeClass.resize(loader,myParent)
@@ -138,25 +138,40 @@ package
 //			trace("nowScale= "+nowScale)	
 //			trace("photoClass.loaderCompleted(e)");
 			tag_load=true
+			trace("loader.width= "+loader.width)
+			trace("loader.height= "+loader.height)
+			
+		}
+		
+		public  function setLoader(_bArray:ByteArray):void
+		{
+			loader = new Loader();
+			var loaderContext:LoaderContext = new LoaderContext(false, ApplicationDomain.currentDomain, null);
+			loaderContext.allowCodeImport=true
+			loader.loadBytes(_bArray)//,loaderContext)
+			addChild(loader)
 			
 		}
 		
 		private function setTagText():void
 		{
-			nt= new NativeText(1);
-			nt.returnKeyLabel = ReturnKeyLabel.DONE;
-			nt.autoCorrect = true;
-			nt.fontSize = 40;
+			tags= new NativeText(1);
+			tags.returnKeyLabel = ReturnKeyLabel.DONE;
+			tags.autoCorrect = true;
+			tags.fontSize = 40;
 //			nt.borderThickness = 5;
 //			nt.borderCornerSize=3
-			nt.borderColor=0x0FFF00
-			nt.fontFamily = "Arial";
-			nt.text = "default";
-			nt.width = 200
-			nt.x =0// (myParent.stage.stageWidth / 2) - (nt.width / 2);
-			nt.y =0- (nt.height); //(myParent.stage.stageHeight / 3) - (nt.height);
-			addChild(nt);
-			nt.freeze()
+			tags.borderColor=0x0FFF00
+			tags.fontFamily = "Arial";
+			tags.text = "default";
+			tags.width = 200
+			tags.x =0// (myParent.stage.stageWidth / 2) - (nt.width / 2);
+			tags.y =0- (tags.height); //(myParent.stage.stageHeight / 3) - (nt.height);
+			addChild(tags);
+			tags.freeze()
+				
+			dispatchEvent(new Event("tagLoaded"))
+
 			
 		}		
 		
