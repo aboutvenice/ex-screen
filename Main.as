@@ -158,7 +158,7 @@ package
 			addChild(layerUISide)
 			stats.scaleX=stats.scaleY=2
 			stats.x=-90
-			stats.visible=false
+			stats.visible=true
 			addChild(stats)
 			//--------------------------------------------------
 			// function runs here

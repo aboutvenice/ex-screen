@@ -7,6 +7,7 @@ package
 	import flash.display.MovieClip;
 	import flash.events.ErrorEvent;
 	import flash.events.Event;
+	import flash.events.IEventDispatcher;
 	import flash.events.MediaEvent;
 	import flash.media.CameraRoll;
 	import flash.media.CameraUI;
@@ -16,6 +17,7 @@ package
 	import flash.system.LoaderContext;
 	import flash.text.ReturnKeyLabel;
 	import flash.utils.ByteArray;
+	import flash.utils.IDataInput;
 
 
 	public class photoClass extends MovieClip
@@ -30,13 +32,28 @@ package
 		public var tag_load:Boolean=false;
 		public var nowScale:Number
 		public var tags:NativeText;
-		
+		//for Exif
+		public var obj_exif:EXifClass=new EXifClass()
+		public var dataSource:IDataInput 
+		public var mediaPromiseForEXif:MediaPromise 
+		public var mediaPromise:MediaPromise
+			
 		public function photoClass(_parent:DisplayObject)
 		{
 			myParent=_parent
+			obj_exif.addEventListener("ROTATED_LEFT",rotateLeftHandler)
 			
 		}
 		
+		protected function rotateLeftHandler(event:Event):void
+		{
+			trace("執行旋轉");
+			//打開可執行選轉，但是會lag,fps降到1，持續數秒
+//			loader.rotationZ=90
+//			loader.x=loader.width
+			
+			
+		}		
 	
 		public function initCamera():void
 		{
@@ -85,18 +102,41 @@ package
 		{
 			trace("photoClass.imageUse(event)");
 			
+//			var mediaPromise:MediaPromise = event.data;
+			 mediaPromise = event.data;
+//			var mediaPromiseForEXif:MediaPromise = event.data;
+			mediaPromiseForEXif = event.data;
 			
-			var mediaPromise:MediaPromise = event.data;
+			
+			
 			if(mediaPromise.file == null){
-				loader = new Loader();
-				loader.contentLoaderInfo.addEventListener(Event.COMPLETE, loaderCompleted);
-				loader.loadFilePromise(mediaPromise);
+				
+				if( mediaPromise.isAsync )
+				{
+					trace( "Asynchronous media promise." );
+					// for show photo
+					loader = new Loader();
+					loader.contentLoaderInfo.addEventListener(Event.COMPLETE, loaderCompleted);
+					loader.loadFilePromise(mediaPromise);
+					
+				}
+				else
+				{
+					trace( "Synchronous media promise." );
+				}
+				
 
 				return;
 			}  
 
 		}
 		
+		private function onMediaLoaded(e:Event):void
+		{
+			obj_exif.readMediaData(dataSource)
+			
+			
+		}		
 				
 		
 		private function loaderCompleted(e:Event):void{
@@ -122,11 +162,9 @@ package
 			
 			}else if(tag_mode=="select")
 			{
-//				trace("loader.width= "+loader.width)
-//				trace("loader.height= "+loader.height)
-				loader.scaleX=loader.scaleY=.3
+//				loader.scaleX=loader.scaleY=.3
 				addChild(loader)
-//				reSizeClass.resize(loader,myParent)
+				reSizeClass.resize(loader,myParent)
 				trace("photo select:loaded")
 			
 			}
@@ -140,6 +178,12 @@ package
 			tag_load=true
 			trace("loader.width= "+loader.width)
 			trace("loader.height= "+loader.height)
+			// for Exif
+			dataSource=mediaPromiseForEXif.open();
+			var eventSource:IEventDispatcher = dataSource as IEventDispatcher;
+			eventSource.addEventListener( Event.COMPLETE, onMediaLoaded );    
+
+
 			
 		}
 		
