@@ -197,7 +197,7 @@ package
 			{
 				stage.removeEventListener(Event.ENTER_FRAME, onRun)
 				stage.addEventListener(MouseEvent.MOUSE_MOVE, worldMoveHandler)
-				stage.addEventListener(MouseEvent.MOUSE_UP, resetFirstXHandler)
+				stage.addEventListener(MouseEvent.MOUSE_UP, resetFirstXHandler)  //手放掉，下一次又是第一次點
 
 				freezRollYaw()
 				//
@@ -206,7 +206,6 @@ package
 				//
 				tag_hudMode=false
 				tag_worldMode=true
-
 
 			}
 			else if (tag_browserMode == "hud")
@@ -221,8 +220,6 @@ package
 				butWorldMode.scaleX=butWorldMode.scaleY=1
 				tag_worldMode=false
 				tag_hudMode=true
-
-
 
 			}
 			else if (tag_browserMode == "object")
@@ -247,22 +244,17 @@ package
 			{
 				tag_worldMode=false
 				tag_browserMode="object"
-					//				butWorldMode.scaleX=butWorldMode.scaleY=1
 			}
 			else if ((!tag_worldMode) && (!tag_hudMode))
 			{
 				tag_worldMode=true
 				tag_browserMode="world"
-					//				butWorldMode.scaleX=butWorldMode.scaleY=.5
 
 			}
 			else if ((!tag_worldMode) && (tag_hudMode))
 			{
 				tag_worldMode=true
 				tag_browserMode="world"
-				//				butWorldMode.scaleX=butWorldMode.scaleY=.5
-				//	
-				//				butHudMode.scaleX=butHudMode.scaleY=1 //另一邊變大
 				tag_hudMode=false
 			}
 
@@ -278,14 +270,12 @@ package
 
 				tag_hudMode=false //變成還沒按
 				tag_browserMode="object"
-//				butHudMode.scaleX=butHudMode.scaleY=1
 			}
 			else if ((!tag_hudMode) && (!tag_worldMode))
 			{
 				//如果還沒按
 				tag_hudMode=true //變成按
 				tag_browserMode="hud"
-//				butHudMode.scaleX=butHudMode.scaleY=.5
 
 			}
 			else if ((!tag_hudMode) && (tag_worldMode))
@@ -294,7 +284,6 @@ package
 				tag_browserMode="hud"
 				butHudMode.scaleX=butHudMode.scaleY=.5
 				//
-//				butWorldMode.scaleX=butWorldMode.scaleY=1
 				tag_worldMode=false
 
 			}
@@ -359,23 +348,15 @@ package
 				firstX=_x
 				firstY=_y
 			}
-//				trace("firstX= " + firstX)
-//				trace("_x= " + _x)
-//				trace("firstY= " + firstY)
-//				trace("_y= " + _y)
-
+			//
 			var distanceX:Number=_x - firstX
 			var distanceY:Number=_y - firstY
-
-//				trace("distanceX= " + distanceX)
-//				trace("mouseRatoinX= " + mouseRatoinX)
-//				trace("distanceY= " + distanceY)
-//				trace("mouseRatoinY= " + mouseRatoinY)
-
+			//
 			diffX=distanceX / 200 * -1 //*-1 讓world模式的移動方向正確
 			diffY=distanceY / 200
 			trace("diffX= " + diffX)
 			trace("diffY= " + diffY)
+			//
 			worldRun()
 
 
@@ -397,11 +378,6 @@ package
 				trace("defaultYaw= " + nowObj.obj_rotate.defaultYaw.toFixed(3))
 				trace("defaultRoll= " + nowObj.obj_rotate.defaultRoll.toFixed(3))
 //				//		
-//				trace("saveRX= "+nowObj.obj_rotate.saveRX.toFixed(3))
-//				trace("saveRY= "+nowObj.obj_rotate.saveRY.toFixed(3))
-				//
-//				diffYaw=nowObj.obj_rotate.saveRX - nowObj.obj_rotate.defaultYaw
-//				diffRoll=nowObj.obj_rotate.saveRY - nowObj.obj_rotate.defaultRoll
 				diffYaw=nowYaw - nowObj.obj_rotate.defaultYaw
 				diffRoll=nowRoll - nowObj.obj_rotate.defaultRoll
 				//	
@@ -686,6 +662,23 @@ package
 				//監聽來自photoClass的事件,圖片選擇是否取消
 				obj_photo.addEventListener("browserCancel", onCancel)
 				obj_photo.addEventListener("tagLoaded", onTagLoaded)
+				//	
+				
+				if (tag_worldMode) 
+				{
+					//如果是世界模式的話
+					
+					obj_photo.obj_rotate.defaultYaw+=diffX // effected by diffX
+					obj_photo.obj_rotate.defaultRoll+=diffY // effected by diffX
+					
+					diffYaw=nowYaw - obj_photo.obj_rotate.defaultYaw
+					diffRoll=nowRoll - obj_photo.obj_rotate.defaultRoll
+					//	
+					//	
+					obj_photo.obj_rotate.start(diffYaw, diffRoll)
+						
+				}
+
 
 			}
 
@@ -816,7 +809,7 @@ package
 					//解開freeze，才能進行輸入
 					nowObjSelect.tags.unfreeze();
 				}
-				trace("preObjSelect= " + preObjSelect)
+//				trace("preObjSelect= " + preObjSelect)
 
 				preObjSelect=nowObjSelect
 
@@ -1097,7 +1090,7 @@ package
 			obj_euler.textField.x=700 //textField of yaw and roll
 			layerText.addChild(obj_euler.textField)
 			//
-			text_diff.x=600
+			text_diff.x=obj_euler.textField.x//follow upper x
 			text_diff.y=100
 			text_diff.background=true
 			text_diff.defaultTextFormat=new TextFormat(null, 30)
@@ -1130,7 +1123,7 @@ package
 			butAddText.x=butShowWeb.x + dis
 			butAddText.y=posY
 			text_but=new TextField()
-			text_but.text="text"
+			text_but.text="save"
 			text_but.textColor=0xFFFFFF
 			butAddText.addChild(text_but)
 			//butLoadFrame
