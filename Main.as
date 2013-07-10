@@ -3,7 +3,7 @@ package
 	import com.adobe.images.JPGEncoder;
 	import com.rancondev.extensions.qrzbar.QRZBar;
 	import com.rancondev.extensions.qrzbar.QRZBarEvent;
-
+	
 	import flash.display.BitmapData;
 	import flash.display.LoaderInfo;
 	import flash.display.Sprite;
@@ -25,7 +25,7 @@ package
 	import flash.ui.Multitouch;
 	import flash.ui.MultitouchInputMode;
 	import flash.utils.ByteArray;
-
+	
 	import net.hires.debug.Stats;
 
 
@@ -144,7 +144,7 @@ package
 			//--------------------------------------------------
 			// visual
 			//--------------------------------------------------
-			layerText.visible=true
+			layerText.visible=false
 			addChild(layerCam)
 //			layerContent.cacheAsBitmap=true
 //			layerContent.cacheAsBitmapMatrix=new Matrix()
@@ -158,7 +158,7 @@ package
 			addChild(layerUISide)
 			stats.scaleX=stats.scaleY=2
 			stats.x=-90
-			stats.visible=true
+			stats.visible=false
 			addChild(stats)
 			//--------------------------------------------------
 			// function runs here
@@ -235,7 +235,7 @@ package
 
 			}
 
-			trace("tag_browserMode= " + tag_browserMode)
+//			trace("tag_browserMode= " + tag_browserMode)
 		}
 
 		protected function worldModeHandler(event:MouseEvent):void
@@ -303,9 +303,9 @@ package
 				nowObj.obj_rotate.saveRX=nowObj.obj_rotate._x //將現在的位移量(位置)存起來(上次傳入的diffYaw)
 				nowObj.obj_rotate.saveRY=nowObj.obj_rotate._y
 
-				trace("Main.freezRollYaw()");
-				trace("nowObj.obj_rotate.defaultYaw= " + nowObj.obj_rotate.defaultYaw.toFixed(3))
-				trace("nowObj.obj_rotate.defaultRoll= " + nowObj.obj_rotate.defaultRoll.toFixed(3))
+//				trace("Main.freezRollYaw()");
+//				trace("nowObj.obj_rotate.defaultYaw= " + nowObj.obj_rotate.defaultYaw.toFixed(3))
+//				trace("nowObj.obj_rotate.defaultRoll= " + nowObj.obj_rotate.defaultRoll.toFixed(3))
 
 			}
 
@@ -335,7 +335,7 @@ package
 		{
 //			if (event.target == stage)
 //			{
-			trace("----------------")
+//			trace("-------worldMoveHandler---------")
 
 
 			var _x:Number=event.target.mouseX
@@ -354,8 +354,8 @@ package
 			//
 			diffX=distanceX / 200 * -1 //*-1 讓world模式的移動方向正確
 			diffY=distanceY / 200
-			trace("diffX= " + diffX)
-			trace("diffY= " + diffY)
+//			trace("diffX= " + diffX)
+//			trace("diffY= " + diffY)
 			//
 			worldRun()
 
@@ -374,15 +374,15 @@ package
 				nowObj.obj_rotate.defaultYaw+=diffX // effected by diffX
 				nowObj.obj_rotate.defaultRoll+=diffY // effected by diffX
 
-				trace("第 " + i + " 個物件 ----------")
-				trace("defaultYaw= " + nowObj.obj_rotate.defaultYaw.toFixed(3))
-				trace("defaultRoll= " + nowObj.obj_rotate.defaultRoll.toFixed(3))
+//				trace("第 " + i + " 個物件 ----------")
+//				trace("defaultYaw= " + nowObj.obj_rotate.defaultYaw.toFixed(3))
+//				trace("defaultRoll= " + nowObj.obj_rotate.defaultRoll.toFixed(3))
 //				//		
 				diffYaw=nowYaw - nowObj.obj_rotate.defaultYaw
 				diffRoll=nowRoll - nowObj.obj_rotate.defaultRoll
 				//	
-				trace("diffYaw= " + diffYaw.toFixed(3))
-				trace("diffRoll= " + diffRoll.toFixed(3))
+//				trace("diffYaw= " + diffYaw.toFixed(3))
+//				trace("diffRoll= " + diffRoll.toFixed(3))
 				//	
 				nowObj.obj_rotate.start(diffYaw, diffRoll)
 
@@ -666,17 +666,12 @@ package
 				
 				if (tag_worldMode) 
 				{
-					//如果是世界模式的話
-					
-					obj_photo.obj_rotate.defaultYaw+=diffX // effected by diffX
-					obj_photo.obj_rotate.defaultRoll+=diffY // effected by diffX
-					
+					//如果是世界模式的話，照片一出來也要進行角度調整。 hud模式的話自己會執行onRun()來調整
+					//					
 					diffYaw=nowYaw - obj_photo.obj_rotate.defaultYaw
 					diffRoll=nowRoll - obj_photo.obj_rotate.defaultRoll
 					//	
-					//	
 					obj_photo.obj_rotate.start(diffYaw, diffRoll)
-						
 				}
 
 
@@ -906,13 +901,14 @@ package
 		public function callTagFrame(e:MouseEvent):void
 		{
 
-			trace("-------callTagFrame---------")
 
 			var nowTag:String=e.target.name
 			var dis:int=0;
 
-			trace("nowTag= " + nowTag)
-			for (var i:int=0; i < array_FrameObj.length; i++)
+//			trace("nowTag= " + nowTag)
+			var total:int=array_FrameObj.length
+			
+			for (var i:int=0; i < total; i++)
 			{
 				var nowObj:*=array_FrameObj[i]
 
@@ -926,15 +922,29 @@ package
 
 //					trace("show tagged frames")
 //					trace("nowObj.tags.text= " + nowObj.tags.text)
-
 					nowObj.visible=true
-					nowObj.obj_rotate.defaultYaw=(nowYaw + 10) - dis * 20 //sort the distance between frames
+					var leftLim:int=10 //排序後frame往左的極限
+					var space:int=30; //frame之間的間距
+					//
+					nowObj.obj_rotate.defaultYaw=(nowYaw + leftLim) - dis * space //sort the distance between frames
 					nowObj.obj_rotate.defaultRoll=nowRoll
+
+					
+					if (tag_worldMode) 
+					{
+						//如果是世界模式的話，因為沒有onRun一直在跑，所以要自己呼叫函式來改變defaultYaw與defaultRoll
+						diffX= 0.0001 //一定要給一些值，不然位置一開始會跑掉，摸一摸才會變好
+						diffY= 0.0001
+						worldRun()
+						worldRun()//一定要呼叫兩次，不然最後一個frame的位置會跑掉，摸一摸才會變好
+					}
+					
 					//	
 					dis++
 
 				}
 			}
+
 
 		}
 

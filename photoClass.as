@@ -80,7 +80,7 @@ package
 			
 			if(CameraRoll.supportsBrowseForImage)
 			{
-				trace("Opening Camera Roll.")
+//				trace("Opening Camera Roll.")
 				tag_mode="select"
 				// Add event listeners for camera roll events
 				cameraRoll.addEventListener(MediaEvent.SELECT, imageUse);
@@ -113,7 +113,7 @@ package
 				
 				if( mediaPromise.isAsync )
 				{
-					trace( "Asynchronous media promise." );
+//					trace( "Asynchronous media promise." );
 					// for show photo
 					loader = new Loader();
 					loader.contentLoaderInfo.addEventListener(Event.COMPLETE, loaderCompleted);
@@ -165,7 +165,7 @@ package
 //				loader.scaleX=loader.scaleY=.3
 				addChild(loader)
 				reSizeClass.resize(loader,myParent)
-				trace("photo select:loaded")
+//				trace("photo select:loaded")
 			
 			}
 			
@@ -176,8 +176,8 @@ package
 //			trace("nowScale= "+nowScale)	
 //			trace("photoClass.loaderCompleted(e)");
 			tag_load=true
-			trace("loader.width= "+loader.width)
-			trace("loader.height= "+loader.height)
+//			trace("loader.width= "+loader.width)
+//			trace("loader.height= "+loader.height)
 			// for Exif
 			dataSource=mediaPromiseForEXif.open();
 			var eventSource:IEventDispatcher = dataSource as IEventDispatcher;

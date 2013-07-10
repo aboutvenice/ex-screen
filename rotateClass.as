@@ -43,6 +43,9 @@ package
 
 		public function start(valueX:Number, valueY:Number):void
 		{
+//			trace("---start----")
+//			trace("valueX= "+valueX.toFixed(3))
+//			trace("valueY= "+valueY.toFixed(3))
 			if (tag_run)
 			{
 				
@@ -64,6 +67,8 @@ package
 					//				trace("減,往左")
 					angleX=_x
 					obj_now.rotationY=angleX
+//					trace("obj_now.rotationY= "+obj_now.rotationY.toFixed(3))
+						
 
 				}
 				else if ((_x > 0) && (_x < value_limitAngle))
@@ -71,6 +76,7 @@ package
 					//					trace("加,往右")
 					angleX=_x
 					obj_now.rotationY=angleX
+//					trace("obj_now.rotationY= "+obj_now.rotationY.toFixed(3))
 
 				}
 
@@ -80,6 +86,7 @@ package
 					//				trace("減,往上")
 					angleY=_y * -1
 					obj_now.rotationX=angleY * -1
+//					trace("obj_now.rotationX= "+obj_now.rotationX.toFixed(3))
 
 				}
 				else if ((_y > 0) && (_y < value_limitAngle))
@@ -88,6 +95,7 @@ package
 					//				trace("加,往下")
 					angleY=_y * -1
 					obj_now.rotationX=angleY * -1
+//					trace("obj_now.rotationX= "+obj_now.rotationX.toFixed(3))
 
 				}
 				else
