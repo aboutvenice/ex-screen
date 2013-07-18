@@ -199,16 +199,20 @@ package
 		
 		private function setTagText():void
 		{
+			//建立tag
 			tags= new NativeText(1);
 			tags.returnKeyLabel = ReturnKeyLabel.DONE;
 			tags.autoCorrect = true;
 			tags.fontSize = 40;
 //			nt.borderThickness = 5;
 //			nt.borderCornerSize=3
+			tags.color=0x000000
 			tags.borderColor=0x0FFF00
 			tags.fontFamily = "Arial";
 			tags.text = "default";
 			tags.width = 200
+			
+				
 			tags.x =0// (myParent.stage.stageWidth / 2) - (nt.width / 2);
 			tags.y =0- (tags.height); //(myParent.stage.stageHeight / 3) - (nt.height);
 			addChild(tags);

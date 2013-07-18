@@ -6,6 +6,7 @@ package
 	
 	import flash.display.BitmapData;
 	import flash.display.LoaderInfo;
+	import flash.display.MovieClip;
 	import flash.display.Sprite;
 	import flash.display.StageOrientation;
 	import flash.display.StageQuality;
@@ -30,7 +31,9 @@ package
 
 
 
-	[SWF(width="800", height="600", backgroundColor="#FFFFFF", frameRate="30")]
+//	[SWF(width="800", height="600", backgroundColor="#FFFFFF", frameRate="30")]
+	[SWF(width="1024", height="768", backgroundColor="#FFFFFF", frameRate="30")]
+
 //	[SWF(width="1632", height="816", backgroundColor="#FFFFFF", frameRate="31")]
 
 
@@ -46,22 +49,26 @@ package
 
 		private var layerUISide:Sprite=new Sprite()
 		private var layerCam:Sprite=new Sprite()
-		private var butShowWeb:Sprite=new Sprite()
+			
+//		private var butShowWeb:Sprite=new Sprite()
+		private var butTag:ButTag=new ButTag
+		private var butAddPhoto:ButAddPhoto=new ButAddPhoto
+		private var butSelectPhoto:ButSelectPhoto=new ButSelectPhoto
+		private var butClearAll:ButClearAll=new ButClearAll
+		private var butWorldMode:ButWorldMode=new ButWorldMode
+		private var butHudMode:ButHudMode=new ButHudMode
+		private var butSave:ButSave=new ButSave
+		private var butLoadFrame:ButLoadFrame=new ButLoadFrame
+		public var butKill:ButKill=new ButKill
+		public var butDrog:ButDrog=new ButDrog
+		public var butEye:ButEye=new ButEye
+		public var butTag_small:ButTag_small=new ButTag_small
+		public var bkTag:BkTag
+		
+		//
 		private var butShowText:Sprite=new Sprite()
-		private var butLoadFrame:Sprite=new Sprite()
 		private var butAddText:Sprite=new Sprite()
-		private var butAddPhoto:Sprite=new Sprite()
-		private var butSelectPhoto:Sprite=new Sprite()
-		private var butClearAll:Sprite=new Sprite()
-		private var butWorldMode:Sprite=new Sprite()
-		private var butHudMode:Sprite=new Sprite()
-//		private var butPin:Sprite=new Sprite()
-		private var butKill:Sprite=new Sprite()
-		private var butDrog:Sprite=new Sprite()
-		private var butAlphaUp:Sprite=new Sprite()
-		private var butAlphaDown:Sprite=new Sprite()
-		private var bk_tag:Sprite=new Sprite()
-
+//		private var butLoadFrame:Sprite=new Sprite()
 
 
 		public var text_but:TextField
@@ -109,7 +116,7 @@ package
 //		private var mouseRatoinY:Number=stage.stageHeight / 10
 		private var diffX:Number=0;
 		private var diffY:Number=0;
-		//tag
+		//frame tag
 		private var nt:NativeText;
 		private var array_tag:Array=new Array()
 		//save	
@@ -117,6 +124,8 @@ package
 		public var readArray:ByteArray
 		public var objLoaderInfo:LoaderInfo
 
+		private var tag_drog:Boolean=false
+			
 
 
 
@@ -171,25 +180,29 @@ package
 			// Listener
 			//--------------------------------------------------			
 
-			butShowText.addEventListener(MouseEvent.CLICK, setText)
-			butShowWeb.addEventListener(MouseEvent.CLICK, addWebHandler)
-			butAddText.addEventListener(MouseEvent.CLICK, addTextHandler)
-			butLoadFrame.addEventListener(MouseEvent.CLICK, loadFrameHander)
+
 			butAddPhoto.addEventListener(MouseEvent.CLICK, addPhotoHandler)
 			butSelectPhoto.addEventListener(MouseEvent.CLICK, addSelectPhotoHandler)
 			butClearAll.addEventListener(MouseEvent.CLICK, removeAllHandler)
 			butHudMode.addEventListener(MouseEvent.CLICK, hudModeHandler)
 			butWorldMode.addEventListener(MouseEvent.CLICK, worldModeHandler)
+			//
+			butSave.addEventListener(MouseEvent.CLICK,saveFrame)
+			butLoadFrame.addEventListener(MouseEvent.CLICK, loadFrameHander)
+			butTag.addEventListener(MouseEvent.CLICK,showTagHandler)	
+			butShowText.addEventListener(MouseEvent.CLICK, setText)
+			//			butShowWeb.addEventListener(MouseEvent.CLICK, addWebHandler)
+			butAddText.addEventListener(MouseEvent.CLICK, addTextHandler)
+			//
 			stage.addEventListener(MouseEvent.CLICK, chooseObjHandler)
 			butKill.addEventListener(MouseEvent.CLICK, removeFrameObject)
 			butDrog.addEventListener(MouseEvent.CLICK, drogFrame)
-			butAlphaUp.addEventListener(MouseEvent.CLICK, alphaUp)
-			butAlphaDown.addEventListener(MouseEvent.CLICK, alphaDown)
+			butEye.addEventListener(MouseEvent.CLICK, eyeHandler)
 
 
 		}
-
-
+		
+		
 
 		private function browserMode():void
 		{
@@ -197,12 +210,14 @@ package
 			{
 				stage.removeEventListener(Event.ENTER_FRAME, onRun)
 				stage.addEventListener(MouseEvent.MOUSE_MOVE, worldMoveHandler)
-				stage.addEventListener(MouseEvent.MOUSE_UP, resetFirstXHandler)  //手放掉，下一次又是第一次點
+				stage.addEventListener(MouseEvent.MOUSE_UP, resetFirstXHandler) //手放掉，下一次又是第一次點
 
 				freezRollYaw()
 				//
-				butHudMode.scaleX=butHudMode.scaleY=1
-				butWorldMode.scaleX=butWorldMode.scaleY=.5
+//				butHudMode.scaleX=butHudMode.scaleY=1
+//				butWorldMode.scaleX=butWorldMode.scaleY=.5
+				butHudMode.alpha=1
+				butWorldMode.alpha=.5
 				//
 				tag_hudMode=false
 				tag_worldMode=true
@@ -216,8 +231,10 @@ package
 				stage.removeEventListener(MouseEvent.MOUSE_MOVE, worldMoveHandler)
 				stage.addEventListener(Event.ENTER_FRAME, onRun)
 				//	
-				butHudMode.scaleX=butHudMode.scaleY=.5
-				butWorldMode.scaleX=butWorldMode.scaleY=1
+//				butHudMode.scaleX=butHudMode.scaleY=.5
+//				butWorldMode.scaleX=butWorldMode.scaleY=1
+				butHudMode.alpha=.5
+				butWorldMode.alpha=1
 				tag_worldMode=false
 				tag_hudMode=true
 
@@ -230,8 +247,10 @@ package
 				//	
 				freezRollYaw()
 				//
-				butHudMode.scaleX=butHudMode.scaleY=1
-				butWorldMode.scaleX=butWorldMode.scaleY=1
+//				butHudMode.scaleX=butHudMode.scaleY=1
+//				butWorldMode.scaleX=butWorldMode.scaleY=1
+				butHudMode.alpha=1
+				butWorldMode.alpha=.5
 
 			}
 
@@ -282,7 +301,7 @@ package
 			{
 				tag_hudMode=true //變成按
 				tag_browserMode="hud"
-				butHudMode.scaleX=butHudMode.scaleY=.5
+//				butHudMode.scaleX=butHudMode.scaleY=.5
 				//
 				tag_worldMode=false
 
@@ -533,8 +552,6 @@ package
 			//
 			setQRReader(null)*/
 
-			saveFrame()
-
 		}
 
 
@@ -565,14 +582,14 @@ package
 		protected function removeAllHandler(event:MouseEvent):void
 		{
 			//把drog button恢復
-			butDrog.scaleX=butDrog.scaleY=1
+			butDrog.scaleX=1
 			layerUISide.visible=false
 			//
 			while (layerContent.numChildren > 0)
 			{
 				layerContent.removeChildAt(0)
 			}
-			
+
 			//clean all array
 			array_FrameObj.splice(0)
 
@@ -661,10 +678,10 @@ package
 				layerContent.addChild(obj_photo)
 				//監聽來自photoClass的事件,圖片選擇是否取消
 				obj_photo.addEventListener("browserCancel", onCancel)
-				obj_photo.addEventListener("tagLoaded", onTagLoaded)
+				obj_photo.addEventListener("tagLoaded", onTagLoaded)  //tag建立好了
 				//	
-				
-				if (tag_worldMode) 
+
+				if (tag_worldMode)
 				{
 					//如果是世界模式的話，照片一出來也要進行角度調整。 hud模式的話自己會執行onRun()來調整
 					//					
@@ -685,7 +702,8 @@ package
 
 		protected function onTagLoaded(event:Event):void
 		{
-			addTag(obj_photo.tags.text)
+//			addTag(obj_photo.tags.text)
+			addTag()
 
 		}
 
@@ -738,7 +756,7 @@ package
 		public function chooseObjHandler(event:MouseEvent):void
 		{
 
-			trace("event.target= " + event.target)
+//			trace("event.target= " + event.target)
 
 
 			if ((event.target.name !== "butKill") && (event.target != stage))
@@ -756,93 +774,197 @@ package
 			{
 
 				nowObjSelect=event.target.parent //photoClass
-
 //				nowObjectIndex=int(nowObjSelect.name)
 				nowObjSelect.addEventListener(TransformGestureEvent.GESTURE_ZOOM, zoomHandler)
 //				ptScalePoint=new Point(nowObjSelect.x + nowObjSelect.width / 2, nowObjSelect.y + nowObjSelect.height / 2);
 
+				var nowLayer:*=event.target.parent.parent
 
-
-				//如果按的是同一個frame,原本看的到的UI就關掉
 				if ((layerUISide.visible) && (preObjSelect == nowObjSelect))
 				{
+					//選了一個，又按同一個frame,原本看的到的UI就關掉
 					layerUISide.visible=false
 					//
-					nowObjSelect.tags.x=0
-					nowObjSelect.tags.y=0 //- (nowObjSelect.tags.height)
-//					nowObjSelect.nt.borderThickness=3
-//					nowObjSelect.nt.borderCornerSize=3
-//					nowObjSelect.nt.borderColor=0x0FFF00
-//					trace("nowObjSelect.tags.text= " + nowObjSelect.tags.text)
-					addTag(nowObjSelect.tags.text)
-					//freeze成bitmap，才能跟隨著frame移動
-					nowObjSelect.tags.freeze();
+					if(!nowObjSelect.obj_rotate.tag_run)
+					{  
+						//如果剛剛有按過drop，導致tag_run＝false
+						//將frame的位置恢復
+						butDrog.alpha=1	
+						nowObjSelect.removeEventListener(TransformGestureEvent.GESTURE_ZOOM, zoomHandler)
+
+						nowObjSelect.obj_rotate.defaultYaw=nowYaw  //photo.rotateClass
+						nowObjSelect.obj_rotate.defaultRoll=nowRoll 
+						nowObjSelect.obj_rotate.tag_run=true
+					}
+//					addTag(nowObjSelect.tags.text)
+					//reset tag position
+					resetTag(nowObjSelect)
+				
+					//選到的frame變透明
+					setFrameAlpha(nowLayer, null)
+
 
 				}
 				else if (((layerUISide.visible) && (preObjSelect !== nowObjSelect)) && (preObjSelect))
 				{
-					trace("Main.chooseObjHandler(event)");
-
+					//先選了一個，又再按了另一個
 					layerUISide.visible=true
-					//將上衣個選擇的frame的tag放回frame旁
-					preObjSelect.tags.x=0
-					preObjSelect.tags.y=0 //- (nowObjSelect.tags.height)
-					preObjSelect.tags.freeze()
+					
+					if (!preObjSelect.obj_rotate.tag_run) 
+					{
+						//如果剛剛有按過drop，導致tag_run＝false
+						//將frame的位置恢復
+						//將上個選擇的frame的tag放回frame旁
+						butDrog.alpha=1	
+						preObjSelect.removeEventListener(TransformGestureEvent.GESTURE_ZOOM, zoomHandler)
+						preObjSelect.obj_rotate.defaultYaw=nowYaw  //photo.rotateClass
+						preObjSelect.obj_rotate.defaultRoll=nowRoll 
+						preObjSelect.obj_rotate.tag_run=true
+					}
+					//	
+					resetTag(preObjSelect)
 					//
-					nowObjSelect.tags.x=bk_tag.x
-					nowObjSelect.tags.y=bk_tag.y
+					nowObjSelect.tags.x=butTag_small.x
+					nowObjSelect.tags.y=butTag_small.y
+					nowObjSelect.tags.color=0xFFFFFF
+					nowObjSelect.tags.fontSize=20 //讓layerUI的tag文字小一點
 					//
 					nowObjSelect.tags.unfreeze();
+					//選到的frame變透明
+					setFrameAlpha(nowLayer, nowObjSelect)
+
+
 				}
 				else
 				{
+					//第一次選
 					layerUISide.visible=true
 					//
 					//
-					nowObjSelect.tags.x=bk_tag.x
-					nowObjSelect.tags.y=bk_tag.y
+					nowObjSelect.tags.x=butTag_small.x
+					nowObjSelect.tags.y=butTag_small.y
+					nowObjSelect.tags.color=0xFFFFFF
+					nowObjSelect.tags.fontSize=20 //讓layerUI的tag文字小一點
 					//解開freeze，才能進行輸入
 					nowObjSelect.tags.unfreeze();
+					//
+					//選到的frame變透明
+					setFrameAlpha(nowLayer, nowObjSelect)
 				}
-//				trace("preObjSelect= " + preObjSelect)
 
 				preObjSelect=nowObjSelect
-
+				addTag() //編輯完tag後，點任何一個fram，都要重新產生tag
 
 			}
 
 
 		}
-
-		private function addTag(_tag:String):void
+		
+		protected function drogFrame(event:MouseEvent):void
 		{
+			trace("Main.drogFrame(event)");
+			
+			var nowRotateObj:*=nowObjSelect.obj_rotate //photo.rotateClass
+			
+			if (nowRotateObj.tag_run == true)
+			{
+				trace("drog 1")
+				//第一次按drog
+				butDrog.alpha=.5 //選到變透明
+				//
+				nowObjSelect.rotationX=nowObjSelect.rotationY=0 //frmae的翻轉角度回復水平
+				nowObjSelect.x=nowObjSelect.y=0 //frame回復位置
+				
+				nowRotateObj.tag_run=false
+				tag_drog=true
+				
+				
+			}
+			else if ((nowRotateObj.tag_run == false) && (preObjSelect == nowObjSelect))
+			{
+				trace("drog 2")
+				//如果這個frame已經按過drog而且跟上一個選的物件是同一個的話=同一個物件內按drog兩次
+				nowObjSelect.removeEventListener(TransformGestureEvent.GESTURE_ZOOM, zoomHandler)
+				//
+				butDrog.alpha=1
+				//
+				nowRotateObj.defaultYaw=nowYaw
+				nowRotateObj.defaultRoll=nowRoll
+				nowRotateObj.tag_run=true
+				layerUISide.visible=false //關掉UI
+				//reset tag position	
+				resetTag(preObjSelect)
+				
+				//
+				//選到的frame變透明
+				setFrameAlpha(layerContent, null)
+				tag_drog=false
+			}
+			
+		}
+		
+		private function resetTag(_nowObjSelect:*):void
+		{
+			//reset tag position
+			_nowObjSelect.tags.x=0 //tag出現的位置
+			_nowObjSelect.tags.y=0 //- (nowObjSelect.tags.height)
+			_nowObjSelect.tags.color=0x000000
+			_nowObjSelect.tags.fontSize=40 //讓layerUI的tag文字恢復原來大小
+			_nowObjSelect.tags.freeze();
+			
+		}
+		
+		private function setFrameAlpha(_nowLayer:*, _nowObjSelect:*):void
+		{
+			for (var i:int=0; i < _nowLayer.numChildren; i++)
+			{
+				//把全部的frame都恢復透明度
+				var nowObj:*=_nowLayer.getChildAt(i)
+				nowObj.alpha=1
+			}
 
+			if (_nowObjSelect != null)
+			{
+				//選到的frame變透明
+				_nowObjSelect.alpha=.8
+			}
+
+
+		}
+
+//		private function addTag(_tag:String):void
+		private function addTag():void
+		{
+			//提取obj_photo中的tag，加到array_tag陣列中			
 
 			//先將array清空
 			array_tag.splice(0)
 
 
-			trace("array_tag.length = " + array_tag.length)
+//			trace("array_tag.length = " + array_tag.length)
 
-			for (var i:int=0; i < array_FrameObj.length; i++)
+			var total:int=array_FrameObj.length	
+			trace("現在有 "+total+"個物件")
+			for (var i:int=0; i < total; i++)
 			{
 				var nowTagObj:*=array_FrameObj[i]
 
 				var nowTag:String=nowTagObj.tags.text
 				var nowResult:int=array_tag.indexOf(nowTag)
-
-				if (array_tag.length > 0)
+				var length:int=array_tag.length
+					
+				if (length > 0)
 				{
 					if (nowResult == -1)
 					{
 						//如果都沒有與之前相等的tag
 						array_tag.push(nowTag)
-						trace("push Array")
+//						trace("push Array")
 					}
 					else
 					{
 						//之前已經有一樣的tag了
-						trace("no push")
+//						trace("no push")
 
 					}
 				}
@@ -850,7 +972,7 @@ package
 				{
 					//如果是第一次
 					array_tag.push(nowTag)
-					trace("first push Array")
+//					trace("first push Array")
 				}
 
 			}
@@ -860,54 +982,67 @@ package
 		}
 
 
+		protected function showTagHandler(event:MouseEvent):void
+		{
+			if (layerTag.visible==false) 
+			{
+				layerTag.visible=true
+			}
+			else 
+			{
+				layerTag.visible=false
+			}
+			
+		}
+		
 		private function setTagButton():void
 		{
-			trace("----------------")
+			//新增tag的button實體
 
-			layerTag.visible=true
 
 			while (layerTag.numChildren > 0)
 			{
 				layerTag.getChildAt(0).removeEventListener(MouseEvent.CLICK, callTagFrame)
 				layerTag.removeChildAt(0);
 			}
-
-			//builde tag button
-			for (var i:int=0; i < array_tag.length; i++)
+			
+			var length:int=array_tag.length
+			//build tag button
+			for (var i:int=0; i < length; i++)
 			{
-
-				var but_tag:Sprite=new Sprite()
-				but_tag.graphics.beginFill(0x0000FF)
-				but_tag.graphics.drawCircle(0, 0, 50)
-				but_tag.x=(100 * i) + 50
-				but_tag.y=stage.stageHeight - 200
-				but_tag.addEventListener(MouseEvent.CLICK, callTagFrame) // addEventListener to tag button
-				but_tag.name=String(array_tag[i])
-				//	
+				trace("總共有 "+length+"個tag")
+				bkTag=new BkTag
+				bkTag.x=0+i*200//stage.stageWidth-bkTag.width-(i*length)
+				bkTag.y=0//700
+				bkTag.addEventListener(MouseEvent.CLICK, callTagFrame) // addEventListener to tag button
+				bkTag.name=String(array_tag[i])
+				//
 				text_but=new TextField()
 				text_but.mouseEnabled=false //disable click
 				text_but.tabEnabled=false; //disable click	
-				text_but.text=but_tag.name
-				text_but.textColor=0xFFFF00
+				text_but.text=bkTag.name
+				text_but.textColor=0xFFFFFF
+				bkTag.addChild(text_but)
 				//	
-				but_tag.addChild(text_but)
-				layerTag.addChild(but_tag)
+				layerTag.addChild(bkTag)
 
 			}
 
 
 		}
+		
+
 
 		public function callTagFrame(e:MouseEvent):void
 		{
 
-
+			//呼叫指定選擇的tag的frame，並排序
 			var nowTag:String=e.target.name
 			var dis:int=0;
 
 //			trace("nowTag= " + nowTag)
 			var total:int=array_FrameObj.length
-			
+
 			for (var i:int=0; i < total; i++)
 			{
 				var nowObj:*=array_FrameObj[i]
@@ -929,16 +1064,16 @@ package
 					nowObj.obj_rotate.defaultYaw=(nowYaw + leftLim) - dis * space //sort the distance between frames
 					nowObj.obj_rotate.defaultRoll=nowRoll
 
-					
-					if (tag_worldMode) 
+
+					if (tag_worldMode)
 					{
 						//如果是世界模式的話，因為沒有onRun一直在跑，所以要自己呼叫函式來改變defaultYaw與defaultRoll
-						diffX= 0.0001 //一定要給一些值，不然位置一開始會跑掉，摸一摸才會變好
-						diffY= 0.0001
+						diffX=0.0001 //一定要給一些值，不然位置一開始會跑掉，摸一摸才會變好
+						diffY=0.0001
 						worldRun()
-						worldRun()//一定要呼叫兩次，不然最後一個frame的位置會跑掉，摸一摸才會變好
+						worldRun() //一定要呼叫兩次，不然最後一個frame的位置會跑掉，摸一摸才會變好
 					}
-					
+
 					//	
 					dis++
 
@@ -962,63 +1097,30 @@ package
 		}
 
 
-		protected function drogFrame(event:MouseEvent):void
+		
+
+
+
+		protected function eyeHandler(event:MouseEvent):void
 		{
-
-			var nowRotateObj:*=nowObjSelect.obj_rotate //photo.rotateClass
-
-			if (nowRotateObj.tag_run == true)
+			
+			//開啟/關閉圖層
+			if (nowObjSelect.visible) 
 			{
-				butDrog.scaleX=butDrog.scaleY=.8
-
-				nowObjSelect.rotationX=nowObjSelect.rotationY=0 //frmae的翻轉角度回復水平
-				nowObjSelect.x=nowObjSelect.y=0 //frame回復位置
-				nowRotateObj.tag_run=false
-
+				nowObjSelect.visible=false
 
 			}
-			else
+			else 
 			{
-				nowObjSelect.removeEventListener(TransformGestureEvent.GESTURE_ZOOM, zoomHandler)
-				//
-				butDrog.scaleX=butDrog.scaleY=1
-				//
-				nowRotateObj.defaultYaw=nowYaw
-				nowRotateObj.defaultRoll=nowRoll
-				nowRotateObj.tag_run=true
-				layerUISide.visible=false //關掉UI
-				//reset tag position	
-				preObjSelect.tags.x=0
-				preObjSelect.tags.y=0 //- (nowObjSelect.tags.height)
-				preObjSelect.tags.freeze()
-
+				nowObjSelect.visible=true
 			}
 
-
 		}
 
-
-
-		protected function alphaDown(event:MouseEvent):void
-		{
-//			nowObjSelect.alpha-=.1
-//			trace("nowObjSelect.alpha= " + nowObjSelect.alpha)
-			nowObjSelect.visible=false
-
-
-		}
-
-		protected function alphaUp(event:MouseEvent):void
-		{
-//			nowObjSelect.alpha+=.1
-//			trace("nowObjSelect.alpha= " + nowObjSelect.alpha)
-			nowObjSelect.visible=true
-
-		}
 
 		protected function removeFrameObject(event:MouseEvent):void
 		{
-			butDrog.scaleX=butDrog.scaleY=1
+			butDrog.alpha=1
 			layerUISide.visible=false
 			//	
 			remove(array_FrameObj, removeCallback, nowObjSelect.name)
@@ -1044,7 +1146,7 @@ package
 		}
 
 
-		private function saveFrame():void
+		private function saveFrame(e:MouseEvent):void
 		{
 			tag_loaded=false
 
@@ -1100,7 +1202,7 @@ package
 			obj_euler.textField.x=700 //textField of yaw and roll
 			layerText.addChild(obj_euler.textField)
 			//
-			text_diff.x=obj_euler.textField.x//follow upper x
+			text_diff.x=obj_euler.textField.x //follow upper x
 			text_diff.y=100
 			text_diff.background=true
 			text_diff.defaultTextFormat=new TextFormat(null, 30)
@@ -1114,166 +1216,58 @@ package
 
 		private function setUI():void
 		{
-			var posX:int=50
-			var posY:int=550
-			var dis:int=100
+			butAddPhoto.x=0
+			butAddPhoto.y=stage.stageHeight-butAddPhoto.height
+			butSelectPhoto.x=butAddPhoto.x+butAddPhoto.width
+			butSelectPhoto.y=butAddPhoto.y
+			butClearAll.x=butSelectPhoto.x+butSelectPhoto.width
+			butClearAll.y=butAddPhoto.y
+			butWorldMode.x=butClearAll.x+butClearAll.width
+			butWorldMode.y=butAddPhoto.y
+			butHudMode.x=butWorldMode.x+butWorldMode.width
+			butHudMode.y=butAddPhoto.y
+			butShowText.x=butHudMode.x+butHudMode.width
+			butShowText.y=butAddPhoto.y
+			butSave.x=butShowText.x+butShowText.width
+			butSave.y=butAddPhoto.y	
+			butLoadFrame.x=	butSave.x+butSave.width
+			butLoadFrame.y=butAddPhoto.y
+			butTag.x=butLoadFrame.x+butLoadFrame.width	
+			butTag.y=butAddPhoto.y
+			//
+			butShowText.x=stage.stageWidth
 
-			butShowWeb.graphics.beginFill(0xFF0000)
-			butShowWeb.graphics.drawCircle(0, 0, 50)
-			butShowWeb.x=posX
-			butShowWeb.y=posY
-			text_but=new TextField()
-
-			text_but.textColor=0xFFFFFF
-			text_but.text="web"
-			butShowWeb.addChild(text_but)
-			//	
-			butAddText.graphics.beginFill(0x0000FF)
-			butAddText.graphics.drawCircle(0, 0, 50)
-			butAddText.x=butShowWeb.x + dis
-			butAddText.y=posY
-			text_but=new TextField()
-			text_but.text="save"
-			text_but.textColor=0xFFFFFF
-			butAddText.addChild(text_but)
-			//butLoadFrame
-			butLoadFrame.graphics.beginFill(0x0000FF)
-			butLoadFrame.graphics.drawCircle(0, 0, 50)
-			butLoadFrame.x=butAddText.x
-			butLoadFrame.y=posY - dis
-			text_but=new TextField()
-			text_but.text="load Frame"
-			text_but.textColor=0xFFFFFF
-			butLoadFrame.addChild(text_but)
-			//	
-			butAddPhoto.graphics.beginFill(0x0000F0)
-			butAddPhoto.graphics.drawCircle(0, 0, 50)
-			butAddPhoto.x=butAddText.x + dis
-			butAddPhoto.y=posY
-			text_but=new TextField()
-			text_but.text="photo"
-			text_but.textColor=0xFFFFFF
-			butAddPhoto.addChild(text_but)
-			//	
-			butSelectPhoto.graphics.beginFill(0x0F00F0)
-			butSelectPhoto.graphics.drawCircle(0, 0, 50)
-			butSelectPhoto.x=butAddPhoto.x + dis
-			butSelectPhoto.y=posY
-			text_but=new TextField()
-			text_but.text="select"
-			text_but.textColor=0xFFFFFF
-			butSelectPhoto.addChild(text_but)
+			
 			//
-			butShowText.graphics.beginFill(0x00FF00)
-			butShowText.graphics.drawCircle(0, 0, 50)
-			butShowText.x=butSelectPhoto.x + dis
-			butShowText.y=posY
-			text_but=new TextField()
-			text_but.text="show text"
-			text_but.textColor=0xFFFFFF
-			butShowText.addChild(text_but)
-			//
-			butClearAll.graphics.beginFill(0xF0FF00)
-			butClearAll.graphics.drawCircle(0, 0, 50)
-			butClearAll.x=butShowText.x + dis
-			butClearAll.y=posY
-			text_but=new TextField()
-			text_but.text="clear all"
-			text_but.textColor=0xFFFFFF
-			butClearAll.addChild(text_but)
-			//
-			butWorldMode.graphics.beginFill(0xF0FF0F)
-			butWorldMode.graphics.drawCircle(0, 0, 50)
-			butWorldMode.x=butClearAll.x + dis
-			butWorldMode.y=posY
-			text_but=new TextField()
-			text_but.text="worldMode"
-			text_but.textColor=0xFFFFFF
-			butWorldMode.addChild(text_but)
-			//
-			butHudMode.graphics.beginFill(0xF0FF0F)
-			butHudMode.graphics.drawCircle(0, 0, 50)
-			butHudMode.x=butWorldMode.x + dis
-			butHudMode.y=posY
-			butHudMode.scaleX=butHudMode.scaleY=.5
-			text_but=new TextField()
-			text_but.text="hudMode"
-			text_but.textColor=0xFFFFFF
-			butHudMode.addChild(text_but)
-			//	cache
-			butShowWeb.cacheAsBitmap=true
-			butAddText.cacheAsBitmap=true
-			butAddPhoto.cacheAsBitmap=true
-			butSelectPhoto.cacheAsBitmap=true
-			butShowText.cacheAsBitmap=true
-			butClearAll.cacheAsBitmap=true
-			//addChild
-			layerUI.addChild(butShowWeb)
-			layerUI.addChild(butAddText)
-			layerUI.addChild(butLoadFrame)
 			layerUI.addChild(butAddPhoto)
 			layerUI.addChild(butSelectPhoto)
-			layerUI.addChild(butShowText)
 			layerUI.addChild(butClearAll)
 			layerUI.addChild(butWorldMode)
 			layerUI.addChild(butHudMode)
-			//
-			//choice button
-			butKill.graphics.beginFill(0x0F00F0)
-			butKill.graphics.drawCircle(0, 0, 50)
-			text_but=new TextField()
-			text_but.text="kill"
-			text_but.textColor=0xFFFFFF
-			butKill.addChild(text_but)
-			butKill.cacheAsBitmap=true
-			butKill.name="butKill"
+			layerUI.addChild(butShowText)
+			layerUI.addChild(butSave)
+			layerUI.addChild(butLoadFrame)
+			layerUI.addChild(butTag)
+				
 			//	
-			butDrog.graphics.beginFill(0x0F00F0)
-			butDrog.graphics.drawCircle(0, 0, 50)
-			text_but=new TextField()
-			text_but.text="Drog"
-			text_but.textColor=0xFFFFFF
-			butDrog.addChild(text_but)
-			butDrog.cacheAsBitmap=true
-			butDrog.name="butDrog"
-			//
-			butAlphaUp.graphics.beginFill(0x0F00F0)
-			butAlphaUp.graphics.drawCircle(0, 0, 50)
-			text_but=new TextField()
-			text_but.text="+"
-			text_but.textColor=0xFFFF00
-			butAlphaUp.addChild(text_but)
-			butAlphaUp.cacheAsBitmap=true
-			butAlphaUp.name="butAlphaUp"
-
-			butAlphaDown.graphics.beginFill(0x0F00F0)
-			butAlphaDown.graphics.drawCircle(0, 0, 50)
-			text_but=new TextField()
-			text_but.text="-"
-			text_but.textColor=0xFFFF00
-			butAlphaDown.addChild(text_but)
-			butAlphaDown.cacheAsBitmap=true
-			butAlphaDown.name="butAlphaDown"
-			//
-			butKill.x=butDrog.x=butAlphaUp.x=butAlphaDown.x=800
-			butKill.y=50
-			butDrog.y=butKill.y + dis
-			butAlphaUp.y=butDrog.y + dis
-			butAlphaDown.y=butAlphaUp.y + dis
-			//
-			//background of tag
-			bk_tag.graphics.beginFill(0xFFFFFF)
-			bk_tag.graphics.drawRect(0, 0, 200, 100)
-			bk_tag.x=butKill.x - dis
-			bk_tag.y=butAlphaDown.y + dis
-
+			layerUI.addChild(butShowText)
+			//	
+			//Side UI
+			butKill.name="butKill"
+			butKill.x=stage.stageWidth-butKill.width
+			butKill.y=stage.stageHeight/2-300
+			butDrog.x=butKill.x
+			butDrog.y=butKill.y+butKill.height
+			butEye.x=butKill.x
+			butEye.y=butDrog.y+butDrog.height	
+			butTag_small.x=butKill.x
+			butTag_small.y=butEye.y+butEye.height
 			//	
 			layerUISide.addChild(butKill)
 			layerUISide.addChild(butDrog)
-			layerUISide.addChild(butAlphaUp)
-			layerUISide.addChild(butAlphaDown)
-			layerUISide.addChild(bk_tag)
-
+			layerUISide.addChild(butEye)
+			layerUISide.addChild(butTag_small)
+				
 
 
 
